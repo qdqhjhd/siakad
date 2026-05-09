@@ -151,6 +151,96 @@ class AkademikService {
     return true;
   }
 
+  Nilai? nilaiKrsMahasiswaAktif(String idKelas) {
+    try {
+      return AppData.daftarNilai.firstWhere(
+        (nilai) =>
+            nilai.nim == AppData.currentNim && nilai.idKelasKuliah == idKelas,
+      );
+    } catch (_) {
+      return null;
+    }
+  }
+
+  bool ambilDraft(String idKelas) {
+    if (sudahAmbilKelas(idKelas)) return false;
+
+    final kelas = AppData.daftarKelas.firstWhere((k) => k.id == idKelas);
+    if (kelasPenuh(kelas)) return false;
+
+    final mataKuliah = mataKuliahByKode(kelas.kodeMataKuliah);
+    AppData.daftarNilai.add(
+      Nilai(
+        nim: AppData.currentNim,
+        idKelasKuliah: kelas.id,
+        kodeMataKuliah: mataKuliah.kodeMataKuliah,
+        namaMataKuliah: mataKuliah.namaMataKuliah,
+        sksMataKuliah: mataKuliah.jumlahSks,
+        statusKrs: 'draft',
+      ),
+    );
+    return true;
+  }
+
+  void kirimKrs() {
+    final draftNilai = AppData.daftarNilai.where(
+      (nilai) => nilai.nim == AppData.currentNim && nilai.statusKrs == 'draft',
+    );
+    for (var nilai in draftNilai) {
+      nilai.statusKrs = 'pending';
+    }
+  }
+
+  List<Mahasiswa> mahasiswaBimbinganDosenAktif() {
+    return AppData.daftarMahasiswa
+        .where((m) => m.dosenPembimbingNidn == AppData.currentDosenNidn)
+        .toList();
+  }
+
+  List<Nilai> krsDraftMahasiswaAktif() {
+    return AppData.daftarNilai
+        .where((n) => n.nim == AppData.currentNim && n.statusKrs == 'draft')
+        .toList();
+  }
+
+  List<Nilai> krsPendingMahasiswaAktif() {
+    return AppData.daftarNilai
+        .where((n) => n.nim == AppData.currentNim && n.statusKrs == 'pending')
+        .toList();
+  }
+
+  List<Nilai> krsValidMahasiswaAktif() {
+    return AppData.daftarNilai
+        .where((n) => n.nim == AppData.currentNim && n.statusKrs == 'valid')
+        .toList();
+  }
+
+  String namaPembimbingMahasiswaAktif() {
+    final nidn = mahasiswaAktif().dosenPembimbingNidn;
+    if (nidn == null) return '';
+    try {
+      final dosen = AppData.daftarDosen.firstWhere((d) => d.nidn == nidn);
+      return dosen.nama;
+    } catch (_) {
+      return '';
+    }
+  }
+
+  List<Nilai> pengajuanKrsDosenAktif() {
+    final bimbinganNim = mahasiswaBimbinganDosenAktif().map((m) => m.nim).toSet();
+    return AppData.daftarNilai
+        .where((n) => bimbinganNim.contains(n.nim) && n.statusKrs == 'pending')
+        .toList();
+  }
+
+  void tolakKrs(Nilai nilai) {
+    nilai.statusKrs = 'draft';
+  }
+
+  void validasiKrs(Nilai nilai) {
+    nilai.statusKrs = 'valid';
+  }
+
   String nilaiHuruf(double nilai) {
     if (nilai >= 85) return 'A';
     if (nilai >= 75) return 'B';

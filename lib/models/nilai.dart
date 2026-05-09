@@ -7,6 +7,9 @@ class Nilai {
   double? nilaiAngka;
   String? nilaiHuruf;
 
+  // draft | pending | valid
+  String statusKrs;
+
   Nilai({
     required this.nim,
     required this.idKelasKuliah,
@@ -15,5 +18,6 @@ class Nilai {
     required this.sksMataKuliah,
     this.nilaiAngka,
     this.nilaiHuruf,
+    this.statusKrs = 'draft',
   });
 }

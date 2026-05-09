@@ -7,6 +7,7 @@ import '../utils/logout.dart';
 import '../widgets/cyber_scaffold.dart';
 import '../widgets/cyber_widgets.dart';
 import 'input_nilai_page.dart';
+import 'validasi_krs_page.dart';
 
 class DosenPage extends StatelessWidget {
   const DosenPage({super.key});
@@ -115,6 +116,19 @@ class DosenPage extends StatelessWidget {
               Navigator.push(
                 context,
                 MaterialPageRoute(builder: (_) => const InputNilaiPage()),
+              );
+            },
+          ),
+          const SizedBox(height: 16),
+          MenuCard(
+            icon: Icons.fact_check,
+            title: 'Validasi KRS Mahasiswa',
+            subtitle: 'Persetujuan kartu rencana studi mahasiswa bimbingan.',
+            badgeCount: akademik.pengajuanKrsDosenAktif().length,
+            onTap: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => const ValidasiKrsPage()),
               );
             },
           ),

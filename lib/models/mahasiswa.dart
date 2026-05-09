@@ -5,6 +5,7 @@ class Mahasiswa {
   String kodeProdi;
   DateTime tanggalLahir;
   int angkatan;
+  String? dosenPembimbingNidn;
 
   Mahasiswa({
     required this.nim,
@@ -13,6 +14,7 @@ class Mahasiswa {
     required this.kodeProdi,
     required this.tanggalLahir,
     required this.angkatan,
+    this.dosenPembimbingNidn,
   });
 
   String get strJk {

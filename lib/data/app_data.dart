@@ -17,8 +17,12 @@ class AppData {
   static String semesterAktif = '20241';
 
   static int hitungPesertaKelas(String idKelas) {
-    return daftarNilai.where((nilai) => nilai.idKelasKuliah == idKelas).length;
-  }
+  return daftarNilai.where(
+    (nilai) =>
+        nilai.idKelasKuliah == idKelas &&
+        nilai.statusKrs == 'valid',
+  ).length;
+}
 
   static List<Prodi> daftarProdi = [
     Prodi(
@@ -136,6 +140,7 @@ class AppData {
       angkatan: 2024,
       jk: false,
       tanggalLahir: DateTime(2005, 5, 20),
+      dosenPembimbingNidn: 'D001',
     ),
     Mahasiswa(
       nim: '2024010002',
@@ -144,6 +149,7 @@ class AppData {
       angkatan: 2025,
       jk: true,
       tanggalLahir: DateTime(2005, 7, 12),
+      dosenPembimbingNidn: 'D004',
     ),
     Mahasiswa(
       nim: '2024010003',
@@ -152,6 +158,7 @@ class AppData {
       angkatan: 2023,
       jk: false,
       tanggalLahir: DateTime(2004, 11, 8),
+      dosenPembimbingNidn: 'D007',
     ),
     Mahasiswa(
       nim: '2024010004',
@@ -160,6 +167,7 @@ class AppData {
       angkatan: 2024,
       jk: true,
       tanggalLahir: DateTime(2005, 2, 9),
+      dosenPembimbingNidn: 'D002',
     ),
     Mahasiswa(
       nim: '2024010005',
@@ -168,6 +176,7 @@ class AppData {
       angkatan: 2023,
       jk: false,
       tanggalLahir: DateTime(2004, 9, 3),
+      dosenPembimbingNidn: 'D003',
     ),
     Mahasiswa(
       nim: '2024010006',
@@ -176,6 +185,7 @@ class AppData {
       angkatan: 2024,
       jk: true,
       tanggalLahir: DateTime(2005, 1, 18),
+      dosenPembimbingNidn: 'D005',
     ),
     Mahasiswa(
       nim: '2024010007',
@@ -184,6 +194,7 @@ class AppData {
       angkatan: 2023,
       jk: false,
       tanggalLahir: DateTime(2004, 6, 21),
+      dosenPembimbingNidn: 'D006',
     ),
     Mahasiswa(
       nim: '2024010008',
@@ -192,6 +203,7 @@ class AppData {
       angkatan: 2024,
       jk: true,
       tanggalLahir: DateTime(2005, 10, 14),
+      dosenPembimbingNidn: 'D008',
     ),
     Mahasiswa(
       nim: '2024010009',
@@ -200,6 +212,7 @@ class AppData {
       angkatan: 2022,
       jk: false,
       tanggalLahir: DateTime(2003, 4, 4),
+      dosenPembimbingNidn: 'D009',
     ),
     Mahasiswa(
       nim: '2024010010',
@@ -208,6 +221,7 @@ class AppData {
       angkatan: 2024,
       jk: true,
       tanggalLahir: DateTime(2005, 8, 30),
+      dosenPembimbingNidn: 'D010',
     ),
   ];
 
