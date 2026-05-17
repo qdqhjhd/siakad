@@ -32,10 +32,10 @@ class _AdminMahasiswaPageState extends State<AdminMahasiswaPage> {
     showDialog(
       context: context,
       builder: (_) => AlertDialog(
-        backgroundColor: AppColors.card,
+        backgroundColor: AppColors.surface,
         title: Text(
           mahasiswa == null ? 'Tambah Mahasiswa' : 'Edit Mahasiswa',
-          style: const TextStyle(color: AppColors.cyan),
+          style: const TextStyle(color: AppColors.primaryLight),
         ),
         content: StatefulBuilder(
           builder: (context, setDialogState) {
@@ -47,7 +47,7 @@ class _AdminMahasiswaPageState extends State<AdminMahasiswaPage> {
                   darkInput(controller: namaController, label: 'Nama Lengkap'),
                   DropdownButtonFormField<bool>(
                     initialValue: jk,
-                    dropdownColor: AppColors.card,
+                    dropdownColor: AppColors.surface,
                     style: const TextStyle(color: AppColors.white),
                     decoration: darkDropdownDecoration('Jenis Kelamin'),
                     items: const [
@@ -63,7 +63,7 @@ class _AdminMahasiswaPageState extends State<AdminMahasiswaPage> {
                   const SizedBox(height: 10),
                   DropdownButtonFormField<String>(
                     initialValue: kodeProdi,
-                    dropdownColor: AppColors.card,
+                    dropdownColor: AppColors.surface,
                     style: const TextStyle(color: AppColors.white),
                     decoration: darkDropdownDecoration('Prodi'),
                     items: AppData.daftarProdi.map((prodi) {
@@ -90,16 +90,16 @@ class _AdminMahasiswaPageState extends State<AdminMahasiswaPage> {
                     style: const TextStyle(color: AppColors.white),
                     decoration: const InputDecoration(
                       labelText: 'Tanggal Lahir',
-                      labelStyle: TextStyle(color: AppColors.cyan),
+                      labelStyle: TextStyle(color: AppColors.primaryLight),
                       suffixIcon: Icon(
                         Icons.calendar_month,
-                        color: AppColors.cyan,
+                        color: AppColors.primaryLight,
                       ),
                       enabledBorder: UnderlineInputBorder(
-                        borderSide: BorderSide(color: AppColors.cyan),
+                        borderSide: BorderSide(color: AppColors.primaryLight),
                       ),
                       focusedBorder: UnderlineInputBorder(
-                        borderSide: BorderSide(color: AppColors.cyan, width: 2),
+                        borderSide: BorderSide(color: AppColors.primaryLight, width: 2),
                       ),
                     ),
                     onTap: () async {
@@ -131,7 +131,7 @@ class _AdminMahasiswaPageState extends State<AdminMahasiswaPage> {
           ),
           ElevatedButton(
             style: ElevatedButton.styleFrom(
-              backgroundColor: AppColors.cyan,
+              backgroundColor: AppColors.primaryLight,
               foregroundColor: Colors.black,
             ),
             onPressed: () {
@@ -189,12 +189,12 @@ class _AdminMahasiswaPageState extends State<AdminMahasiswaPage> {
       style: const TextStyle(color: AppColors.white),
       decoration: InputDecoration(
         labelText: label,
-        labelStyle: const TextStyle(color: AppColors.cyan),
+        labelStyle: const TextStyle(color: AppColors.primaryLight),
         enabledBorder: const UnderlineInputBorder(
-          borderSide: BorderSide(color: AppColors.cyan),
+          borderSide: BorderSide(color: AppColors.primaryLight),
         ),
         focusedBorder: const UnderlineInputBorder(
-          borderSide: BorderSide(color: AppColors.cyan, width: 2),
+          borderSide: BorderSide(color: AppColors.primaryLight, width: 2),
         ),
       ),
     );
@@ -203,12 +203,12 @@ class _AdminMahasiswaPageState extends State<AdminMahasiswaPage> {
   InputDecoration darkDropdownDecoration(String label) {
     return InputDecoration(
       labelText: label,
-      labelStyle: const TextStyle(color: AppColors.cyan),
+      labelStyle: const TextStyle(color: AppColors.primaryLight),
       enabledBorder: const UnderlineInputBorder(
-        borderSide: BorderSide(color: AppColors.cyan),
+        borderSide: BorderSide(color: AppColors.primaryLight),
       ),
       focusedBorder: const UnderlineInputBorder(
-        borderSide: BorderSide(color: AppColors.cyan, width: 2),
+        borderSide: BorderSide(color: AppColors.primaryLight, width: 2),
       ),
     );
   }
@@ -245,85 +245,107 @@ class _AdminMahasiswaPageState extends State<AdminMahasiswaPage> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: AppColors.bg,
-      body: AppData.daftarMahasiswa.isEmpty
-          ? const Center(
-              child: Text(
-                'Belum ada data mahasiswa',
-                style: TextStyle(color: AppColors.white),
+    return Column(
+      children: [
+        Padding(
+          padding: const EdgeInsets.all(16.0),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              const Text(
+                'Daftar Mahasiswa',
+                style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: AppColors.textPrimary),
               ),
-            )
-          : ListView.builder(
-              padding: const EdgeInsets.all(12),
-              itemCount: AppData.daftarMahasiswa.length,
-              itemBuilder: (context, index) {
-                final mhs = AppData.daftarMahasiswa[index];
+              ElevatedButton.icon(
+                onPressed: () => formMahasiswa(),
+                icon: const Icon(Icons.add),
+                label: const Text('TAMBAH'),
+              ),
+            ],
+          ),
+        ),
+        Expanded(
+          child: AppData.daftarMahasiswa.isEmpty
+              ? const Center(
+                  child: Text(
+                    'Belum ada data mahasiswa',
+                    style: TextStyle(color: AppColors.textSecondary),
+                  ),
+                )
+              : ListView.builder(
+                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                  itemCount: AppData.daftarMahasiswa.length,
+                  itemBuilder: (context, index) {
+                    final mhs = AppData.daftarMahasiswa[index];
 
-                return Card(
-                  color: AppColors.card,
-                  elevation: 10,
-                  shadowColor: AppColors.cyan,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(18),
-                    side: const BorderSide(color: AppColors.cyan, width: 0.8),
-                  ),
-                  child: ListTile(
-                    leading: CircleAvatar(
-                      backgroundColor: AppColors.cyan,
-                      child: Text(
-                        mhs.namaLengkap[0],
-                        style: const TextStyle(
-                          color: Colors.black,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                    ),
-                    title: Text(
-                      mhs.namaLengkap,
-                      style: const TextStyle(
+                    return Container(
+                      margin: const EdgeInsets.only(bottom: 16),
+                      padding: const EdgeInsets.all(16),
+                      decoration: BoxDecoration(
                         color: AppColors.white,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                    subtitle: Text(
-                      'NIM: ${mhs.nim}\n'
-                      'JK: ${mhs.jk ? 'Perempuan' : 'Laki-laki'}\n'
-                      'Prodi: ${getNamaProdi(mhs.kodeProdi)}\n'
-                      'Angkatan: ${mhs.angkatan}\n'
-                      'Tanggal Lahir: ${mhs.tanggalLahir.day}-${mhs.tanggalLahir.month}-${mhs.tanggalLahir.year}',
-                      style: const TextStyle(color: AppColors.grey),
-                    ),
-                    isThreeLine: true,
-                    trailing: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        IconButton(
-                          tooltip: 'Edit',
-                          onPressed: () =>
-                              formMahasiswa(mahasiswa: mhs, index: index),
-                          icon: const Icon(Icons.edit, color: AppColors.cyan),
-                        ),
-                        IconButton(
-                          tooltip: 'Hapus',
-                          onPressed: () => hapusMahasiswa(index),
-                          icon: const Icon(
-                            Icons.delete,
-                            color: Colors.redAccent,
+                        borderRadius: BorderRadius.circular(20),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withValues(alpha: 0.03),
+                            blurRadius: 10,
+                            offset: const Offset(0, 4),
                           ),
-                        ),
-                      ],
-                    ),
-                  ),
-                );
-              },
-            ),
-      floatingActionButton: FloatingActionButton(
-        backgroundColor: AppColors.cyan,
-        foregroundColor: Colors.black,
-        onPressed: () => formMahasiswa(),
-        child: const Icon(Icons.add),
-      ),
+                        ],
+                      ),
+                      child: Row(
+                        children: [
+                          CircleAvatar(
+                            radius: 24,
+                            backgroundColor: AppColors.bg,
+                            child: Text(
+                              mhs.namaLengkap[0],
+                              style: const TextStyle(
+                                color: AppColors.primary,
+                                fontWeight: FontWeight.bold,
+                                fontSize: 18,
+                              ),
+                            ),
+                          ),
+                          const SizedBox(width: 16),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  mhs.namaLengkap,
+                                  style: const TextStyle(
+                                    color: AppColors.textPrimary,
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 16,
+                                  ),
+                                ),
+                                const SizedBox(height: 4),
+                                Text(
+                                  'NIM: ${mhs.nim} • ${getNamaProdi(mhs.kodeProdi)}',
+                                  style: const TextStyle(color: AppColors.textSecondary, fontSize: 13),
+                                ),
+                                Text(
+                                  'Angkatan: ${mhs.angkatan} • ${mhs.jk ? 'Perempuan' : 'Laki-laki'}',
+                                  style: const TextStyle(color: AppColors.textSecondary, fontSize: 12),
+                                ),
+                              ],
+                            ),
+                          ),
+                          IconButton(
+                            onPressed: () => formMahasiswa(mahasiswa: mhs, index: index),
+                            icon: const Icon(Icons.edit_outlined, color: AppColors.primaryLight, size: 20),
+                          ),
+                          IconButton(
+                            onPressed: () => hapusMahasiswa(index),
+                            icon: const Icon(Icons.delete_outline, color: Colors.redAccent, size: 20),
+                          ),
+                        ],
+                      ),
+                    );
+                  },
+                ),
+        ),
+      ],
     );
   }
 }

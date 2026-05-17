@@ -1,20 +1,35 @@
 import 'package:flutter/material.dart';
 
 class AppColors {
-  static const bg = Color(0xFF071625);
-  static const deep = Color(0xFF0E2538);
-  static const navy = Color(0xFF123A5A);
-  static const card = Color(0xFF102D44);
-  static const cardSoft = Color(0xFF173D58);
-  static const cyan = Color(0xFF1F7A8C);
-  static const cyanBright = Color(0xFF64B6C4);
-  static const accent = Color(0xFFD9A441);
-  static const blue = Color(0xFF1F5F95);
-  static const gold = Color(0xFFC98B2C);
-  static const goldLight = Color(0xFFF0C56A);
+  static const primary = Color(0xFF4A6CF7); // Vibrant Blue
+  static const primaryLight = Color(0xFF7B91F9);
+  static const bg = Color(0xFFF4F7FF); // Very Light Blue/White
+  static const surface = Color(0xFFFFFFFF);
+  static const surfaceLayer = Color(0xFFE8EEFF);
+  
+  // Gradients
+  static const gradStart = Color(0xFF6C8AF7);
+  static const gradEnd = Color(0xFFAC92F9);
+  static const purpleHeader = Color(0xFF9181F4);
+
+  static const accent = Color(0xFF5CCCE8);
+  static const textPrimary = Color(0xFF1F2937); // Slate 800
+  static const textSecondary = Color(0xFF6B7280); // Slate 500
+  
+  static const glass = Color(0x99FFFFFF); // Transparent white for glass effect
+  static const glassBorder = Color(0x33FFFFFF);
+  
   static const white = Colors.white;
-  static const text = Color(0xFFF6FAFC);
-  static const grey = Color(0xFFC6D3DA);
-  static const border = Color(0x334C879A);
-  static const borderBright = Color(0x667BB4C4);
+  static const grey = Color(0xFF9CA3AF);
+  static const error = Color(0xFFEF4444);
+  static const success = Color(0xFF10B981);
+  static const warning = Color(0xFFF59E0B);
+  
+  static const border = Color(0xFFE5E7EB);
+
+  // Compatibility Aliases
+  static const gold = Color(0xFFF59E0B);
+  static const goldLight = Color(0xFFFBBF24);
+  static const freshAir = Color(0xFFE0F2FE);
+  static const surfaceVariant = Color(0xFFF3F4F6);
 }

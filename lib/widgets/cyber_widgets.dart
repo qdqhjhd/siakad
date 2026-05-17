@@ -1,30 +1,60 @@
 import 'package:flutter/material.dart';
-
+import 'dart:ui';
 import '../theme/app_colors.dart';
 
 class CyberPanel extends StatelessWidget {
   final Widget child;
   final EdgeInsetsGeometry padding;
+  final double borderRadius;
+  final Color? color;
+  final bool isGlass;
 
   const CyberPanel({
     super.key,
     required this.child,
-    this.padding = const EdgeInsets.all(18),
+    this.padding = const EdgeInsets.all(24),
+    this.borderRadius = 24,
+    this.color,
+    this.isGlass = true,
   });
 
   @override
   Widget build(BuildContext context) {
+    if (isGlass) {
+      return ClipRRect(
+        borderRadius: BorderRadius.circular(borderRadius),
+        child: BackdropFilter(
+          filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+          child: Container(
+            padding: padding,
+            decoration: BoxDecoration(
+              color: color ?? AppColors.glass,
+              borderRadius: BorderRadius.circular(borderRadius),
+              border: Border.all(color: AppColors.glassBorder),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withValues(alpha: 0.05),
+                  blurRadius: 20,
+                  offset: const Offset(0, 10),
+                ),
+              ],
+            ),
+            child: child,
+          ),
+        ),
+      );
+    }
+
     return Container(
       padding: padding,
       decoration: BoxDecoration(
-        color: AppColors.card.withValues(alpha: 0.94),
-        border: Border.all(color: AppColors.border),
-        borderRadius: BorderRadius.circular(8),
+        color: color ?? AppColors.white,
+        borderRadius: BorderRadius.circular(borderRadius),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.18),
-            blurRadius: 18,
-            offset: const Offset(0, 8),
+            color: Colors.black.withValues(alpha: 0.04),
+            blurRadius: 20,
+            offset: const Offset(0, 10),
           ),
         ],
       ),
@@ -50,19 +80,19 @@ class CyberHeader extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return CyberPanel(
+      padding: const EdgeInsets.all(20),
       child: Row(
         children: [
           Container(
-            width: 54,
-            height: 54,
+            width: 48,
+            height: 48,
             decoration: BoxDecoration(
-              border: Border.all(color: AppColors.cyan),
-              borderRadius: BorderRadius.circular(8),
-              color: AppColors.blue.withValues(alpha: 0.22),
+              gradient: const LinearGradient(colors: [AppColors.gradStart, AppColors.gradEnd]),
+              borderRadius: BorderRadius.circular(12),
             ),
-            child: Icon(icon, color: AppColors.goldLight, size: 30),
+            child: Icon(icon, color: Colors.white, size: 24),
           ),
-          const SizedBox(width: 16),
+          const SizedBox(width: 20),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -70,25 +100,25 @@ class CyberHeader extends StatelessWidget {
                 Text(
                   tag.toUpperCase(),
                   style: const TextStyle(
-                    color: AppColors.goldLight,
-                    fontSize: 11,
-                    letterSpacing: 2,
-                    fontWeight: FontWeight.w700,
-                  ),
-                ),
-                const SizedBox(height: 6),
-                Text(
-                  title,
-                  style: const TextStyle(
-                    color: AppColors.text,
-                    fontSize: 22,
+                    color: AppColors.primary,
+                    fontSize: 10,
+                    letterSpacing: 1.5,
                     fontWeight: FontWeight.w800,
                   ),
                 ),
                 const SizedBox(height: 4),
                 Text(
+                  title,
+                  style: const TextStyle(
+                    color: AppColors.textPrimary,
+                    fontSize: 20,
+                    fontWeight: FontWeight.w900,
+                  ),
+                ),
+                const SizedBox(height: 2),
+                Text(
                   subtitle,
-                  style: const TextStyle(color: AppColors.grey, height: 1.35),
+                  style: const TextStyle(color: AppColors.textSecondary, fontSize: 13, height: 1.3),
                 ),
               ],
             ),
@@ -123,7 +153,7 @@ class MenuCard extends StatelessWidget {
       child: CyberPanel(
         child: Row(
           children: [
-            Icon(icon, color: AppColors.cyanBright, size: 32),
+            Icon(icon, color: AppColors.primary, size: 32),
             const SizedBox(width: 14),
             Expanded(
               child: Column(
@@ -134,7 +164,7 @@ class MenuCard extends StatelessWidget {
                       Text(
                         title,
                         style: const TextStyle(
-                          color: AppColors.white,
+                          color: AppColors.textPrimary,
                           fontSize: 17,
                           fontWeight: FontWeight.w700,
                         ),
@@ -150,7 +180,7 @@ class MenuCard extends StatelessWidget {
                           child: Text(
                             '$badgeCount',
                             style: const TextStyle(
-                              color: AppColors.card,
+                              color: AppColors.surface,
                               fontSize: 12,
                               fontWeight: FontWeight.w900,
                             ),
@@ -169,7 +199,7 @@ class MenuCard extends StatelessWidget {
             ),
             const Icon(
               Icons.arrow_forward_ios,
-              color: AppColors.cyan,
+              color: AppColors.primaryLight,
               size: 16,
             ),
           ],
@@ -182,31 +212,32 @@ class MenuCard extends StatelessWidget {
 class StatTile extends StatelessWidget {
   final String value;
   final String label;
+  final Color? color;
 
-  const StatTile({super.key, required this.value, required this.label});
+  const StatTile({super.key, required this.value, required this.label, this.color});
 
   @override
   Widget build(BuildContext context) {
     return CyberPanel(
-      padding: const EdgeInsets.all(14),
+      padding: const EdgeInsets.all(20),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
             value,
-            style: const TextStyle(
-              color: AppColors.accent,
-              fontSize: 26,
+            style: TextStyle(
+              color: color ?? AppColors.primary,
+              fontSize: 28,
               fontWeight: FontWeight.w900,
             ),
           ),
-          const SizedBox(height: 4),
+          const SizedBox(height: 6),
           Text(
             label.toUpperCase(),
             style: const TextStyle(
-              color: AppColors.grey,
+              color: AppColors.textSecondary,
               fontSize: 10,
-              letterSpacing: 1.6,
+              letterSpacing: 1.2,
               fontWeight: FontWeight.w700,
             ),
           ),
@@ -227,7 +258,7 @@ class ProgressMetric extends StatelessWidget {
     required this.label,
     required this.value,
     required this.progress,
-    this.color = AppColors.cyanBright,
+    this.color = AppColors.primary,
   });
 
   @override
@@ -238,30 +269,30 @@ class ProgressMetric extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            Expanded(
-              child: Text(
-                label,
-                style: const TextStyle(
-                  color: AppColors.grey,
-                  fontWeight: FontWeight.w700,
-                ),
+            Text(
+              label,
+              style: const TextStyle(
+                color: AppColors.textSecondary,
+                fontWeight: FontWeight.bold,
+                fontSize: 13,
               ),
             ),
             Text(
               value,
-              style: TextStyle(color: color, fontWeight: FontWeight.w900),
+              style: TextStyle(color: color, fontWeight: FontWeight.w900, fontSize: 13),
             ),
           ],
         ),
-        const SizedBox(height: 8),
+        const SizedBox(height: 10),
         ClipRRect(
-          borderRadius: BorderRadius.circular(8),
+          borderRadius: BorderRadius.circular(10),
           child: LinearProgressIndicator(
             value: normalized,
             minHeight: 8,
             color: color,
-            backgroundColor: AppColors.grey.withValues(alpha: 0.16),
+            backgroundColor: AppColors.bg,
           ),
         ),
       ],
@@ -291,7 +322,7 @@ class MiniBarChart extends StatelessWidget {
           Text(
             title,
             style: const TextStyle(
-              color: AppColors.text,
+              color: AppColors.textPrimary,
               fontWeight: FontWeight.w800,
               fontSize: 16,
             ),
@@ -332,9 +363,9 @@ class MiniBarChart extends StatelessWidget {
                     child: Text(
                       value.value.toStringAsFixed(value.decimalDigits),
                       textAlign: TextAlign.right,
-                      style: const TextStyle(
-                        color: AppColors.white,
-                        fontSize: 12,
+                        style: const TextStyle(
+                          color: AppColors.textSecondary,
+                          fontSize: 12,
                         fontWeight: FontWeight.w800,
                       ),
                     ),

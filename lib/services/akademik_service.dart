@@ -3,9 +3,19 @@ import '../models/kelas_kuliah.dart';
 import '../models/mahasiswa.dart';
 import '../models/mata_kuliah.dart';
 import '../models/nilai.dart';
+import '../models/notification_model.dart';
+import '../services/notification_service.dart';
 
 class AkademikService {
   const AkademikService();
+
+  List<Mahasiswa> pesertaKelas(String idKelas) {
+    final nims = AppData.daftarNilai
+        .where((n) => n.idKelasKuliah == idKelas)
+        .map((n) => n.nim)
+        .toSet();
+    return AppData.daftarMahasiswa.where((m) => nims.contains(m.nim)).toList();
+  }
 
   Mahasiswa mahasiswaAktif() {
     return AppData.daftarMahasiswa.firstWhere(
@@ -182,12 +192,47 @@ class AkademikService {
     return true;
   }
 
+  void batalDraft(String idKelas) {
+    AppData.daftarNilai.removeWhere(
+      (n) => n.nim == AppData.currentNim && n.idKelasKuliah == idKelas && n.statusKrs == 'draft',
+    );
+  }
+
+  Nilai? riwayatMataKuliah(String kodeMataKuliah) {
+    try {
+      return AppData.daftarNilai.firstWhere(
+        (nilai) => nilai.nim == AppData.currentNim && nilai.kodeMataKuliah == kodeMataKuliah,
+      );
+    } catch (_) {
+      return null;
+    }
+  }
+
   void kirimKrs() {
     final draftNilai = AppData.daftarNilai.where(
       (nilai) => nilai.nim == AppData.currentNim && nilai.statusKrs == 'draft',
     );
     for (var nilai in draftNilai) {
       nilai.statusKrs = 'pending';
+    }
+
+    if (draftNilai.isNotEmpty) {
+      final mahasiswa = mahasiswaAktif();
+      final dosenNidn = mahasiswa.dosenPembimbingNidn;
+      if (dosenNidn != null) {
+        NotificationService.addNotification(
+          AppNotification(
+            id: DateTime.now().millisecondsSinceEpoch.toString(),
+            title: 'Permintaan Validasi KRS',
+            message: 'Mahasiswa ${mahasiswa.namaLengkap} (${mahasiswa.nim}) meminta validasi KRS.',
+            timestamp: DateTime.now(),
+            type: NotificationType.validation,
+            actionRoute: '/validasi_krs',
+            targetRole: 'dosen',
+            targetId: dosenNidn,
+          ),
+        );
+      }
     }
   }
 

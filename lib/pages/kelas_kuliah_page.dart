@@ -120,7 +120,7 @@ class _KelasKuliahPageState extends State<KelasKuliahPage> {
                     namaKelas: nama.text,
                     dosenPengampu: dosen!,
                     kapasitas: int.parse(kapasitas.text),
-                    jumlahPeserta: 0,
+                    jumlahPeserta: 0, jadwal: 'TBD',
                   ),
                 );
               });

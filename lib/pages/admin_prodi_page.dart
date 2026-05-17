@@ -16,101 +16,122 @@ class AdminProdiPage extends StatefulWidget {
 }
 
 class _AdminProdiPageState extends State<AdminProdiPage> {
-  int selectedIndex = 0;
+  int _selectedIndex = 0;
 
-  final pages = const [
+  final List<Widget> _pages = const [
+    _AdminProdiDashboard(),
     ProdiMahasiswaPage(),
     MataKuliahPage(),
     KelasKuliahPage(),
   ];
 
-  final titles = const ['Mahasiswa Prodi', 'Mata Kuliah', 'Kelas Kuliah'];
-
   @override
   Widget build(BuildContext context) {
     return CyberScaffold(
-      appBar: AppBar(
-        title: Text(titles[selectedIndex]),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.logout),
-            onPressed: () => logout(context),
-          ),
-        ],
-      ),
-      child: Column(
-        children: [
-          const _AdminProdiStats(),
-          Expanded(child: pages[selectedIndex]),
-        ],
-      ),
-      bottomNavigationBar: BottomNavigationBar(
-        currentIndex: selectedIndex,
-        onTap: (i) => setState(() => selectedIndex = i),
-        items: const [
-          BottomNavigationBarItem(icon: Icon(Icons.people), label: 'Mahasiswa'),
-          BottomNavigationBarItem(icon: Icon(Icons.book), label: 'Matkul'),
-          BottomNavigationBarItem(icon: Icon(Icons.class_), label: 'Kelas'),
-        ],
-      ),
+      sidebarItems: const [
+        SidebarItem(icon: Icons.dashboard_rounded, label: 'Dashboard'),
+        SidebarItem(icon: Icons.groups_rounded, label: 'Mahasiswa'),
+        SidebarItem(icon: Icons.library_books_rounded, label: 'Mata Kuliah'),
+        SidebarItem(icon: Icons.class_rounded, label: 'Kelas Kuliah'),
+      ],
+      selectedIndex: _selectedIndex,
+      onItemSelected: (i) => setState(() => _selectedIndex = i),
+      child: _pages[_selectedIndex],
     );
   }
 }
 
-class _AdminProdiStats extends StatelessWidget {
-  const _AdminProdiStats();
+class _AdminProdiDashboard extends StatelessWidget {
+  const _AdminProdiDashboard();
 
   @override
   Widget build(BuildContext context) {
     final kodeProdi = AppData.currentAdminProdiKode;
-    final mahasiswa = AppData.daftarMahasiswa
-        .where((mhs) => mhs.kodeProdi == kodeProdi)
-        .length;
-    final matkul = AppData.daftarMataKuliah
-        .where((mk) => mk.kodeProdi == kodeProdi)
-        .length;
-    final kelas = AppData.daftarKelas
-        .where((kelas) => kelas.kodeProdi == kodeProdi)
-        .toList();
-    final idKelas = kelas.map((kelas) => kelas.id).toSet();
-    final nilaiProdi = AppData.daftarNilai
-        .where((nilai) => idKelas.contains(nilai.idKelasKuliah))
-        .toList();
-    final belumDinilai = nilaiProdi.where((nilai) => nilai.nilaiAngka == null).length;
-    final totalKapasitas = kelas.fold<int>(0, (sum, kelas) => sum + kelas.kapasitas);
-    final totalPeserta = kelas.fold<int>(
-      0,
-      (sum, kelas) => sum + AppData.hitungPesertaKelas(kelas.id),
-    );
+    final mahasiswa = AppData.daftarMahasiswa.where((m) => m.kodeProdi == kodeProdi).length;
+    final matkul = AppData.daftarMataKuliah.where((m) => m.kodeProdi == kodeProdi).length;
+    final kelas = AppData.daftarKelas.where((k) => k.kodeProdi == kodeProdi).toList();
+    final idKelas = kelas.map((k) => k.id).toSet();
+    final nilaiProdi = AppData.daftarNilai.where((n) => idKelas.contains(n.idKelasKuliah)).toList();
+    final belumDinilai = nilaiProdi.where((n) => n.nilaiAngka == null).length;
+    final totalKapasitas = kelas.fold<int>(0, (s, k) => s + k.kapasitas);
+    final totalPeserta = kelas.fold<int>(0, (s, k) => s + AppData.hitungPesertaKelas(k.id));
 
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
+    return SingleChildScrollView(
       child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Expanded(child: StatTile(value: '$mahasiswa', label: 'Mahasiswa')),
-              const SizedBox(width: 10),
-              Expanded(child: StatTile(value: '$matkul', label: 'Matkul')),
-              const SizedBox(width: 10),
-              Expanded(child: StatTile(value: '${kelas.length}', label: 'Kelas')),
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text('Admin Prodi', style: TextStyle(fontSize: 32, fontWeight: FontWeight.w900, color: AppColors.textPrimary)),
+                  Text('Program Studi: $kodeProdi', style: const TextStyle(color: AppColors.textSecondary)),
+                ],
+              ),
+              ElevatedButton.icon(
+                onPressed: () => logout(context),
+                icon: const Icon(Icons.logout, size: 18),
+                label: const Text('LOGOUT'),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppColors.primary,
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+                ),
+              ),
             ],
           ),
-          const SizedBox(height: 10),
+          const SizedBox(height: 30),
+          Row(
+            children: [
+              Expanded(
+                child: CyberPanel(
+                  color: AppColors.bg,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Text('Mahasiswa Prodi', style: TextStyle(fontWeight: FontWeight.bold)),
+                      const SizedBox(height: 10),
+                      Text('$mahasiswa', style: const TextStyle(fontSize: 40, fontWeight: FontWeight.w900)),
+                    ],
+                  ),
+                ),
+              ),
+              const SizedBox(width: 20),
+              Expanded(
+                child: CyberPanel(
+                  color: AppColors.primary,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Text('Mata Kuliah', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white)),
+                      const SizedBox(height: 10),
+                      Text('$matkul', style: const TextStyle(fontSize: 40, fontWeight: FontWeight.w900, color: AppColors.accent)),
+                    ],
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 20),
           CyberPanel(
             child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
+                const Text('Statistik Akademik', style: TextStyle(fontWeight: FontWeight.bold)),
+                const SizedBox(height: 20),
                 ProgressMetric(
                   label: 'Keterisian Kelas',
-                  value: '$totalPeserta/$totalKapasitas',
+                  value: '$totalPeserta / $totalKapasitas',
                   progress: totalKapasitas == 0 ? 0 : totalPeserta / totalKapasitas,
+                  color: AppColors.primaryLight,
                 ),
-                const SizedBox(height: 14),
+                const SizedBox(height: 20),
                 ProgressMetric(
                   label: 'Nilai Belum Masuk',
-                  value: '$belumDinilai/${nilaiProdi.length}',
+                  value: '$belumDinilai / ${nilaiProdi.length}',
                   progress: nilaiProdi.isEmpty ? 0 : belumDinilai / nilaiProdi.length,
-                  color: AppColors.goldLight,
+                  color: AppColors.error,
                 ),
               ],
             ),

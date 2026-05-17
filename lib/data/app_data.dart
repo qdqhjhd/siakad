@@ -227,154 +227,154 @@ class AppData {
 
   static List<User> users = [
     User(
-      username: 'david',
+      username: '2024010001',
       password: '123',
       nama: 'David Purnomo',
       identifier: '2024010001',
       role: 'mahasiswa',
     ),
     User(
-      username: 'vidi',
+      username: '2024010002',
       password: '123',
       nama: 'Vidi Lapa',
       identifier: '2024010002',
       role: 'mahasiswa',
     ),
     User(
-      username: 'zhao',
+      username: '2024010003',
       password: '123',
       nama: 'Zhao Yufan',
       identifier: '2024010003',
       role: 'mahasiswa',
     ),
     User(
-      username: 'salsa',
+      username: '2024010004',
       password: '123',
       nama: 'Salsa Kirana',
       identifier: '2024010004',
       role: 'mahasiswa',
     ),
     User(
-      username: 'raka',
+      username: '2024010005',
       password: '123',
       nama: 'Raka Mahendra',
       identifier: '2024010005',
       role: 'mahasiswa',
     ),
     User(
-      username: 'nadia',
+      username: '2024010006',
       password: '123',
       nama: 'Nadia Aulia',
       identifier: '2024010006',
       role: 'mahasiswa',
     ),
     User(
-      username: 'bagas',
+      username: '2024010007',
       password: '123',
       nama: 'Bagas Pratama',
       identifier: '2024010007',
       role: 'mahasiswa',
     ),
     User(
-      username: 'maya',
+      username: '2024010008',
       password: '123',
       nama: 'Maya Saraswati',
       identifier: '2024010008',
       role: 'mahasiswa',
     ),
     User(
-      username: 'adit',
+      username: '2024010009',
       password: '123',
       nama: 'Adit Wijaya',
       identifier: '2024010009',
       role: 'mahasiswa',
     ),
     User(
-      username: 'keisha',
+      username: '2024010010',
       password: '123',
       nama: 'Keisha Putri',
       identifier: '2024010010',
       role: 'mahasiswa',
     ),
     User(
-      username: 'irfan',
+      username: 'D001',
       password: '123',
       nama: 'Ir. Arfan',
       identifier: 'D001',
       role: 'dosen',
     ),
     User(
-      username: 'megumi',
+      username: 'D002',
       password: '123',
       nama: 'Dr. Megumi Fushiguro',
       identifier: 'D002',
       role: 'dosen',
     ),
     User(
-      username: 'toji',
+      username: 'D003',
       password: '123',
       nama: 'Ir. Toji Fushiguro',
       identifier: 'D003',
       role: 'dosen',
     ),
     User(
-      username: 'yuji',
+      username: 'D004',
       password: '123',
       nama: 'dr. yuji',
       identifier: 'D004',
       role: 'dosen',
     ),
     User(
-      username: 'frieren',
+      username: 'D005',
       password: '123',
       nama: 'dr. Frieren',
       identifier: 'D005',
       role: 'dosen',
     ),
     User(
-      username: 'lawliet',
+      username: 'D006',
       password: '123',
       nama: 'dr. Lawliet',
       identifier: 'D006',
       role: 'dosen',
     ),
     User(
-      username: 'raynata',
+      username: 'D007',
       password: '123',
       nama: 'Dr. Raynata Bien',
       identifier: 'D007',
       role: 'dosen',
     ),
     User(
-      username: 'izumi',
+      username: 'D008',
       password: '123',
       nama: 'Dr. izumi',
       identifier: 'D008',
       role: 'dosen',
     ),
     User(
-      username: 'nanami',
+      username: 'D009',
       password: '123',
       nama: 'Dr. Nanami',
       identifier: 'D009',
       role: 'dosen',
     ),
     User(
-      username: 'rina',
+      username: 'D010',
       password: '123',
       nama: 'Dr. Rina Wulandari',
       identifier: 'D010',
       role: 'dosen',
     ),
     User(
-      username: 'admin',
+      username: 'A001',
       password: '456',
       nama: 'Administrator Universitas',
       identifier: 'A001',
       role: 'admin_univ',
     ),
     User(
-      username: 'adminilkom',
+      username: 'AP001',
       password: '789',
       nama: 'Administrator Program Studi Ilmu Komputer',
       identifier: 'AP001',
@@ -382,7 +382,7 @@ class AppData {
       kodeProdi: 'ILKOM-01',
     ),
     User(
-      username: 'adminbio',
+      username: 'AP002',
       password: '789',
       nama: 'Administrator Program Studi Biologi',
       identifier: 'AP002',
@@ -390,7 +390,7 @@ class AppData {
       kodeProdi: 'BIO-03',
     ),
     User(
-      username: 'adminFK',
+      username: 'AP003',
       password: '789',
       nama: 'Administrator Program Studi Ilmu Kedokteran',
       identifier: 'AP003',
@@ -398,7 +398,7 @@ class AppData {
       kodeProdi: 'FK-02',
     ),
     User(
-      username: 'admindkv',
+      username: 'AP004',
       password: '789',
       nama: 'Administrator Program Studi DKV',
       identifier: 'AP004',
@@ -430,6 +430,7 @@ class AppData {
       dosenPengampu: 'Ir. Arfan',
       kapasitas: 4,
       jumlahPeserta: 4,
+      jadwal: 'Senin, 08:00 - 10:30 @ R101',
     ),
     KelasKuliah(
       id: 'IF-02',
@@ -440,6 +441,7 @@ class AppData {
       dosenPengampu: 'Dr. Megumi Fushiguro',
       kapasitas: 5,
       jumlahPeserta: 3,
+      jadwal: 'Senin, 08:00 - 10:30 @ R101',
     ),
     KelasKuliah(
       id: 'IF-03',
@@ -450,6 +452,7 @@ class AppData {
       dosenPengampu: 'Ir. Toji Fushiguro',
       kapasitas: 3,
       jumlahPeserta: 2,
+      jadwal: 'Senin, 08:00 - 10:30 @ R101',
     ),
     KelasKuliah(
       id: 'IF-04',
@@ -460,6 +463,7 @@ class AppData {
       dosenPengampu: 'Ir. Arfan',
       kapasitas: 6,
       jumlahPeserta: 2,
+      jadwal: 'Senin, 08:00 - 10:30 @ R101',
     ),
     KelasKuliah(
       id: 'IF-05',
@@ -470,6 +474,7 @@ class AppData {
       dosenPengampu: 'Dr. Megumi Fushiguro',
       kapasitas: 2,
       jumlahPeserta: 0,
+      jadwal: 'Senin, 08:00 - 10:30 @ R101',
     ),
     KelasKuliah(
       id: 'KD-01',
@@ -480,6 +485,7 @@ class AppData {
       dosenPengampu: 'dr. yuji',
       kapasitas: 3,
       jumlahPeserta: 3,
+      jadwal: 'Senin, 08:00 - 10:30 @ R101',
     ),
     KelasKuliah(
       id: 'KD-02',
@@ -490,6 +496,7 @@ class AppData {
       dosenPengampu: 'dr. Frieren',
       kapasitas: 4,
       jumlahPeserta: 2,
+      jadwal: 'Senin, 08:00 - 10:30 @ R101',
     ),
     KelasKuliah(
       id: 'KD-03',
@@ -500,6 +507,7 @@ class AppData {
       dosenPengampu: 'dr. Lawliet',
       kapasitas: 5,
       jumlahPeserta: 1,
+      jadwal: 'Senin, 08:00 - 10:30 @ R101',
     ),
     KelasKuliah(
       id: 'KD-04',
@@ -510,6 +518,7 @@ class AppData {
       dosenPengampu: 'dr. yuji',
       kapasitas: 4,
       jumlahPeserta: 1,
+      jadwal: 'Senin, 08:00 - 10:30 @ R101',
     ),
     KelasKuliah(
       id: 'BI-01',
@@ -520,6 +529,7 @@ class AppData {
       dosenPengampu: 'Dr. Raynata Bien',
       kapasitas: 4,
       jumlahPeserta: 3,
+      jadwal: 'Senin, 08:00 - 10:30 @ R101',
     ),
     KelasKuliah(
       id: 'BI-02',
@@ -530,6 +540,7 @@ class AppData {
       dosenPengampu: 'Dr. izumi',
       kapasitas: 3,
       jumlahPeserta: 3,
+      jadwal: 'Senin, 08:00 - 10:30 @ R101',
     ),
     KelasKuliah(
       id: 'BI-03',
@@ -540,6 +551,7 @@ class AppData {
       dosenPengampu: 'Dr. Nanami',
       kapasitas: 5,
       jumlahPeserta: 2,
+      jadwal: 'Senin, 08:00 - 10:30 @ R101',
     ),
     KelasKuliah(
       id: 'BI-04',
@@ -550,6 +562,7 @@ class AppData {
       dosenPengampu: 'Dr. Raynata Bien',
       kapasitas: 4,
       jumlahPeserta: 0,
+      jadwal: 'Senin, 08:00 - 10:30 @ R101',
     ),
     KelasKuliah(
       id: 'DKV-01',
@@ -560,6 +573,7 @@ class AppData {
       dosenPengampu: 'Dr. Rina Wulandari',
       kapasitas: 3,
       jumlahPeserta: 1,
+      jadwal: 'Senin, 08:00 - 10:30 @ R101',
     ),
     KelasKuliah(
       id: 'DKV-02',
@@ -570,6 +584,7 @@ class AppData {
       dosenPengampu: 'Dr. Rina Wulandari',
       kapasitas: 2,
       jumlahPeserta: 0,
+      jadwal: 'Senin, 08:00 - 10:30 @ R101',
     ),
   ];
 
@@ -582,6 +597,7 @@ class AppData {
       sksMataKuliah: 3,
       nilaiAngka: 88,
       nilaiHuruf: 'A',
+      statusKrs: 'valid',
     ),
     Nilai(
       nim: '2024010001',
@@ -591,6 +607,7 @@ class AppData {
       sksMataKuliah: 3,
       nilaiAngka: 76,
       nilaiHuruf: 'B',
+      statusKrs: 'valid',
     ),
     Nilai(
       nim: '2024010001',
@@ -598,6 +615,7 @@ class AppData {
       kodeMataKuliah: 'ILKOM204',
       namaMataKuliah: 'Pemrograman Mobile',
       sksMataKuliah: 3,
+      statusKrs: 'valid',
     ),
     Nilai(
       nim: '2024010004',
@@ -607,6 +625,7 @@ class AppData {
       sksMataKuliah: 3,
       nilaiAngka: 91,
       nilaiHuruf: 'A',
+      statusKrs: 'valid',
     ),
     Nilai(
       nim: '2024010004',
@@ -614,6 +633,7 @@ class AppData {
       kodeMataKuliah: 'ILKOM102',
       namaMataKuliah: 'Struktur Data',
       sksMataKuliah: 3,
+      statusKrs: 'valid',
     ),
     Nilai(
       nim: '2024010004',
@@ -623,6 +643,7 @@ class AppData {
       sksMataKuliah: 3,
       nilaiAngka: 68,
       nilaiHuruf: 'C',
+      statusKrs: 'valid',
     ),
     Nilai(
       nim: '2024010005',
@@ -632,6 +653,7 @@ class AppData {
       sksMataKuliah: 3,
       nilaiAngka: 73,
       nilaiHuruf: 'C',
+      statusKrs: 'valid',
     ),
     Nilai(
       nim: '2024010005',
@@ -639,6 +661,7 @@ class AppData {
       kodeMataKuliah: 'ILKOM103',
       namaMataKuliah: 'Basis Data',
       sksMataKuliah: 3,
+      statusKrs: 'valid',
     ),
     Nilai(
       nim: '2024010002',
@@ -648,6 +671,7 @@ class AppData {
       sksMataKuliah: 4,
       nilaiAngka: 82,
       nilaiHuruf: 'B',
+      statusKrs: 'valid',
     ),
     Nilai(
       nim: '2024010002',
@@ -655,6 +679,7 @@ class AppData {
       kodeMataKuliah: 'FK102',
       namaMataKuliah: 'Fisiologi',
       sksMataKuliah: 4,
+      statusKrs: 'valid',
     ),
     Nilai(
       nim: '2024010002',
@@ -664,6 +689,7 @@ class AppData {
       sksMataKuliah: 3,
       nilaiAngka: 90,
       nilaiHuruf: 'A',
+      statusKrs: 'valid',
     ),
     Nilai(
       nim: '2024010006',
@@ -673,6 +699,7 @@ class AppData {
       sksMataKuliah: 4,
       nilaiAngka: 95,
       nilaiHuruf: 'A',
+      statusKrs: 'valid',
     ),
     Nilai(
       nim: '2024010006',
@@ -682,6 +709,7 @@ class AppData {
       sksMataKuliah: 4,
       nilaiAngka: 79,
       nilaiHuruf: 'B',
+      statusKrs: 'valid',
     ),
     Nilai(
       nim: '2024010007',
@@ -689,6 +717,7 @@ class AppData {
       kodeMataKuliah: 'FK101',
       namaMataKuliah: 'Anatomi',
       sksMataKuliah: 4,
+      statusKrs: 'valid',
     ),
     Nilai(
       nim: '2024010007',
@@ -698,24 +727,7 @@ class AppData {
       sksMataKuliah: 3,
       nilaiAngka: 62,
       nilaiHuruf: 'D',
-    ),
-    Nilai(
-      nim: '2024010003',
-      idKelasKuliah: 'BI-01',
-      kodeMataKuliah: 'BIO101',
-      namaMataKuliah: 'Biologi Sel',
-      sksMataKuliah: 3,
-      nilaiAngka: 85,
-      nilaiHuruf: 'A',
-    ),
-    Nilai(
-      nim: '2024010003',
-      idKelasKuliah: 'BI-02',
-      kodeMataKuliah: 'BIO102',
-      namaMataKuliah: 'Genetika',
-      sksMataKuliah: 3,
-      nilaiAngka: 78,
-      nilaiHuruf: 'B',
+      statusKrs: 'valid',
     ),
     Nilai(
       nim: '2024010008',
@@ -723,6 +735,7 @@ class AppData {
       kodeMataKuliah: 'BIO101',
       namaMataKuliah: 'Biologi Sel',
       sksMataKuliah: 3,
+      statusKrs: 'valid',
     ),
     Nilai(
       nim: '2024010008',
@@ -732,6 +745,7 @@ class AppData {
       sksMataKuliah: 3,
       nilaiAngka: 93,
       nilaiHuruf: 'A',
+      statusKrs: 'valid',
     ),
     Nilai(
       nim: '2024010009',
@@ -741,6 +755,7 @@ class AppData {
       sksMataKuliah: 3,
       nilaiAngka: 55,
       nilaiHuruf: 'D',
+      statusKrs: 'valid',
     ),
     Nilai(
       nim: '2024010009',
@@ -748,6 +763,7 @@ class AppData {
       kodeMataKuliah: 'BIO103',
       namaMataKuliah: 'Ekologi',
       sksMataKuliah: 3,
+      statusKrs: 'valid',
     ),
     Nilai(
       nim: '2024010010',
@@ -757,6 +773,16 @@ class AppData {
       sksMataKuliah: 3,
       nilaiAngka: 87,
       nilaiHuruf: 'A',
+      statusKrs: 'valid',
+    ),
+
+    Nilai(
+      nim: '2024010001',
+      idKelasKuliah: 'IF-05',
+      kodeMataKuliah: 'ILKOM305',
+      namaMataKuliah: 'Keamanan Siber',
+      sksMataKuliah: 3,
+      statusKrs: 'pending',
     ),
   ];
 }

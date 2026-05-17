@@ -7,6 +7,7 @@ class KelasKuliah {
   int kapasitas;
   int jumlahPeserta;
   String dosenPengampu;
+  String jadwal;
 
   KelasKuliah({
     required this.id,
@@ -17,5 +18,6 @@ class KelasKuliah {
     required this.kapasitas,
     this.jumlahPeserta = 0,
     required this.dosenPengampu,
+    required this.jadwal,
   });
 }

@@ -20,10 +20,10 @@ class _AdminDosenPageState extends State<AdminDosenPage> {
     showDialog(
       context: context,
       builder: (_) => AlertDialog(
-        backgroundColor: AppColors.card,
+        backgroundColor: AppColors.surface,
         title: Text(
           dosen == null ? 'Tambah Dosen' : 'Edit Dosen',
-          style: const TextStyle(color: AppColors.cyan),
+          style: const TextStyle(color: AppColors.primaryLight),
         ),
         content: StatefulBuilder(
           builder: (context, setDialogState) {
@@ -35,7 +35,7 @@ class _AdminDosenPageState extends State<AdminDosenPage> {
                   style: const TextStyle(color: AppColors.white),
                   decoration: const InputDecoration(
                     labelText: 'NIDN',
-                    labelStyle: TextStyle(color: AppColors.cyan),
+                    labelStyle: TextStyle(color: AppColors.primaryLight),
                   ),
                 ),
                 TextField(
@@ -43,16 +43,16 @@ class _AdminDosenPageState extends State<AdminDosenPage> {
                   style: const TextStyle(color: AppColors.white),
                   decoration: const InputDecoration(
                     labelText: 'Nama Dosen',
-                    labelStyle: TextStyle(color: AppColors.cyan),
+                    labelStyle: TextStyle(color: AppColors.primaryLight),
                   ),
                 ),
                 DropdownButtonFormField<String>(
                   initialValue: kodeProdi,
-                  dropdownColor: AppColors.card,
+                  dropdownColor: AppColors.surface,
                   style: const TextStyle(color: AppColors.white),
                   decoration: const InputDecoration(
                     labelText: 'Prodi',
-                    labelStyle: TextStyle(color: AppColors.cyan),
+                    labelStyle: TextStyle(color: AppColors.primaryLight),
                   ),
                   items: AppData.daftarProdi.map((prodi) {
                     return DropdownMenuItem(
@@ -77,7 +77,7 @@ class _AdminDosenPageState extends State<AdminDosenPage> {
           ),
           ElevatedButton(
             style: ElevatedButton.styleFrom(
-              backgroundColor: AppColors.cyan,
+              backgroundColor: AppColors.primaryLight,
               foregroundColor: Colors.black,
             ),
             onPressed: () {
@@ -163,16 +163,16 @@ class _AdminDosenPageState extends State<AdminDosenPage> {
                 final dosen = AppData.daftarDosen[index];
 
                 return Card(
-                  color: AppColors.card,
+                  color: AppColors.surface,
                   elevation: 10,
-                  shadowColor: AppColors.cyan,
+                  shadowColor: AppColors.primaryLight,
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(18),
-                    side: const BorderSide(color: AppColors.cyan, width: 0.8),
+                    side: const BorderSide(color: AppColors.primaryLight, width: 0.8),
                   ),
                   child: ListTile(
                     leading: const CircleAvatar(
-                      backgroundColor: AppColors.cyan,
+                      backgroundColor: AppColors.primaryLight,
                       child: Icon(Icons.person, color: Colors.black),
                     ),
                     title: Text(
@@ -192,7 +192,7 @@ class _AdminDosenPageState extends State<AdminDosenPage> {
                         IconButton(
                           onPressed: () =>
                               formDosen(dosen: dosen, index: index),
-                          icon: const Icon(Icons.edit, color: AppColors.cyan),
+                          icon: const Icon(Icons.edit, color: AppColors.primaryLight),
                         ),
                         IconButton(
                           onPressed: () => hapusDosen(index),
@@ -208,7 +208,7 @@ class _AdminDosenPageState extends State<AdminDosenPage> {
               },
             ),
       floatingActionButton: FloatingActionButton(
-        backgroundColor: AppColors.cyan,
+        backgroundColor: AppColors.primaryLight,
         foregroundColor: Colors.black,
         onPressed: () => formDosen(),
         child: const Icon(Icons.add),
