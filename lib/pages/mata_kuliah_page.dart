@@ -166,8 +166,7 @@ class _MataKuliahPageState extends State<MataKuliahPage> {
                       mainAxisSize: MainAxisSize.min,
                       children: [
                         IconButton(
-                          onPressed: () =>
-                              formMataKuliah(mataKuliah: m, index: realIndex),
+                          onPressed: () => formMataKuliah(mataKuliah: m, index: realIndex),
                           icon: const Icon(Icons.edit),
                         ),
                         IconButton(
@@ -180,9 +179,10 @@ class _MataKuliahPageState extends State<MataKuliahPage> {
                 );
               },
             ),
-      floatingActionButton: FloatingActionButton(
+      floatingActionButton: FloatingActionButton.extended(
         onPressed: () => formMataKuliah(),
-        child: const Icon(Icons.add),
+        icon: const Icon(Icons.add),
+        label: const Text('+ Tambah'),
       ),
     );
   }

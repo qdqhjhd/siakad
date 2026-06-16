@@ -5,9 +5,13 @@ class AuthService {
   const AuthService();
 
   User? login(String username, String password) {
+    final inputUsername = username.trim().toLowerCase();
+    final inputPassword = password.trim();
+
     for (final user in AppData.users) {
-      if (user.username == username.trim() &&
-          user.password == password.trim()) {
+      if ((user.username.toLowerCase() == inputUsername ||
+              user.identifier.toLowerCase() == inputUsername) &&
+          user.password == inputPassword) {
         _setCurrentUser(user);
         return user;
       }
@@ -33,10 +37,11 @@ class AuthService {
       );
       AppData.currentDosenNidn = dosen.nidn;
       AppData.currentDosenNama = dosen.nama;
+      AppData.currentDosenNidn = dosen.nidn;
       AppData.currentDosenProdi = dosen.kodeProdi;
     }
 
-    if (user.role == 'admin_prodi') {
+    if (user.role == 'admin_prodi' || user.role == 'pimpinan_prodi') {
       AppData.currentAdminProdiKode = user.kodeProdi ?? '';
       AppData.currentAdminProdiNama = user.nama;
     }

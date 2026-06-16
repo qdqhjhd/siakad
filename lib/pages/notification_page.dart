@@ -26,6 +26,32 @@ class NotificationPage extends StatelessWidget {
       child: ListView(
         padding: const EdgeInsets.all(16),
         children: [
+          // Tombol Kembali
+          Row(
+            children: [
+              InkWell(
+                onTap: () => Navigator.pop(context),
+                borderRadius: BorderRadius.circular(8),
+                child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                  decoration: BoxDecoration(
+                    color: AppColors.bg,
+                    borderRadius: BorderRadius.circular(8),
+                    border: Border.all(color: AppColors.border),
+                  ),
+                  child: const Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(Icons.arrow_back_ios_new_rounded, size: 14, color: AppColors.primary),
+                      SizedBox(width: 6),
+                      Text('Kembali', style: TextStyle(color: AppColors.primary, fontWeight: FontWeight.w600, fontSize: 13)),
+                    ],
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 16),
           const CyberHeader(
             tag: '// Pusat Informasi',
             title: 'Notifikasi',

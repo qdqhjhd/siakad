@@ -5,7 +5,9 @@ class Mahasiswa {
   String kodeProdi;
   DateTime tanggalLahir;
   int angkatan;
+  bool isAktif; // true = Aktif, false = Tidak Aktif
   String? dosenPembimbingNidn;
+  String? catatanKrs;
 
   Mahasiswa({
     required this.nim,
@@ -14,10 +16,16 @@ class Mahasiswa {
     required this.kodeProdi,
     required this.tanggalLahir,
     required this.angkatan,
+    this.isAktif = true,
     this.dosenPembimbingNidn,
+    this.catatanKrs,
   });
 
   String get strJk {
     return jk == true ? 'Perempuan' : 'Laki-laki';
+  }
+
+  String get strStatus {
+    return isAktif ? 'Aktif' : 'Tidak Aktif';
   }
 }

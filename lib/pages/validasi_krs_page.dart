@@ -122,18 +122,7 @@ class _ValidasiKrsPageState extends State<ValidasiKrsPage> {
                       children: [
                         Expanded(
                           child: OutlinedButton.icon(
-                            onPressed: () {
-                              setState(() {
-                                for (var n in listNilai) {
-                                  akademik.tolakKrs(n);
-                                }
-                              });
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                SnackBar(
-                                    content: Text(
-                                        'KRS ${mhs.namaLengkap} ditolak')),
-                              );
-                            },
+                            onPressed: () => _showTolakDialog(nim, mhs.namaLengkap),
                             icon: const Icon(Icons.close),
                             label: const Text('Tolak Semua'),
                           ),
@@ -165,6 +154,86 @@ class _ValidasiKrsPageState extends State<ValidasiKrsPage> {
             );
           }),
       ],
+    );
+  }
+
+  void _showTolakDialog(String nim, String namaLengkap) {
+    final controller = TextEditingController();
+
+    showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          backgroundColor: AppColors.surface,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+          title: Text(
+            'Tolak KRS $namaLengkap',
+            style: const TextStyle(color: AppColors.error, fontWeight: FontWeight.bold, fontSize: 18),
+          ),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Text(
+                'Berikan alasan/catatan penolakan untuk mahasiswa:',
+                style: TextStyle(color: AppColors.textSecondary, fontSize: 13),
+              ),
+              const SizedBox(height: 12),
+              TextField(
+                controller: controller,
+                maxLines: 3,
+                style: const TextStyle(color: AppColors.textPrimary),
+                decoration: InputDecoration(
+                  hintText: 'Contoh: SKS melebihi batas atau jadwal bentrok.',
+                  hintStyle: const TextStyle(color: AppColors.grey),
+                  filled: true,
+                  fillColor: AppColors.bg,
+                  enabledBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    borderSide: const BorderSide(color: AppColors.border),
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    borderSide: const BorderSide(color: AppColors.error, width: 1.5),
+                  ),
+                ),
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text('Batal', style: TextStyle(color: AppColors.textSecondary)),
+            ),
+            ElevatedButton(
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppColors.error,
+                foregroundColor: Colors.white,
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+              ),
+              onPressed: () {
+                if (controller.text.trim().isEmpty) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text('Alasan penolakan tidak boleh kosong')),
+                  );
+                  return;
+                }
+                setState(() {
+                  akademik.tolakKrsMhs(nim, controller.text.trim());
+                });
+                Navigator.pop(context);
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text('KRS $namaLengkap telah ditolak dengan catatan'),
+                    backgroundColor: AppColors.error,
+                  ),
+                );
+              },
+              child: const Text('Tolak KRS', style: TextStyle(fontWeight: FontWeight.bold)),
+            ),
+          ],
+        );
+      },
     );
   }
 }

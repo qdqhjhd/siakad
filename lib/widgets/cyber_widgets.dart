@@ -213,27 +213,83 @@ class StatTile extends StatelessWidget {
   final String value;
   final String label;
   final Color? color;
+  final IconData? icon;
+  final double? progress; // 0.0-1.0 for ring, null = no ring
 
-  const StatTile({super.key, required this.value, required this.label, this.color});
+  const StatTile({
+    super.key,
+    required this.value,
+    required this.label,
+    this.color,
+    this.icon,
+    this.progress,
+  });
 
   @override
   Widget build(BuildContext context) {
+    final ringColor = color ?? AppColors.primary;
+    final hasRing = progress != null;
+
     return CyberPanel(
       padding: const EdgeInsets.all(20),
       child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            value,
-            style: TextStyle(
-              color: color ?? AppColors.primary,
-              fontSize: 28,
-              fontWeight: FontWeight.w900,
+          if (hasRing) ...[
+            SizedBox(
+              width: 72,
+              height: 72,
+              child: Stack(
+                alignment: Alignment.center,
+                children: [
+                  SizedBox(
+                    width: 72,
+                    height: 72,
+                    child: CircularProgressIndicator(
+                      value: progress!.clamp(0.0, 1.0),
+                      strokeWidth: 6,
+                      strokeCap: StrokeCap.round,
+                      color: ringColor,
+                      backgroundColor: ringColor.withValues(alpha: 0.12),
+                    ),
+                  ),
+                  if (icon != null)
+                    Icon(icon, color: ringColor, size: 24)
+                  else
+                    Text(
+                      value,
+                      style: TextStyle(
+                        color: ringColor,
+                        fontSize: 18,
+                        fontWeight: FontWeight.w900,
+                      ),
+                    ),
+                ],
+              ),
             ),
-          ),
+            const SizedBox(height: 12),
+            if (icon != null)
+              Text(
+                value,
+                style: TextStyle(
+                  color: ringColor,
+                  fontSize: 22,
+                  fontWeight: FontWeight.w900,
+                ),
+              ),
+          ] else ...[
+            Text(
+              value,
+              style: TextStyle(
+                color: ringColor,
+                fontSize: 28,
+                fontWeight: FontWeight.w900,
+              ),
+            ),
+          ],
           const SizedBox(height: 6),
           Text(
             label.toUpperCase(),
+            textAlign: TextAlign.center,
             style: const TextStyle(
               color: AppColors.textSecondary,
               fontSize: 10,
@@ -264,35 +320,74 @@ class ProgressMetric extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final normalized = progress.clamp(0.0, 1.0);
+    final percent = (normalized * 100).round();
 
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
+    return Row(
       children: [
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Text(
-              label,
-              style: const TextStyle(
-                color: AppColors.textSecondary,
-                fontWeight: FontWeight.bold,
-                fontSize: 13,
+        // Circular ring
+        SizedBox(
+          width: 80,
+          height: 80,
+          child: Stack(
+            alignment: Alignment.center,
+            children: [
+              SizedBox(
+                width: 80,
+                height: 80,
+                child: CircularProgressIndicator(
+                  value: normalized,
+                  strokeWidth: 7,
+                  strokeCap: StrokeCap.round,
+                  color: color,
+                  backgroundColor: color.withValues(alpha: 0.12),
+                ),
               ),
-            ),
-            Text(
-              value,
-              style: TextStyle(color: color, fontWeight: FontWeight.w900, fontSize: 13),
-            ),
-          ],
+              Text(
+                '$percent%',
+                style: TextStyle(
+                  color: color,
+                  fontSize: 18,
+                  fontWeight: FontWeight.w900,
+                ),
+              ),
+            ],
+          ),
         ),
-        const SizedBox(height: 10),
-        ClipRRect(
-          borderRadius: BorderRadius.circular(10),
-          child: LinearProgressIndicator(
-            value: normalized,
-            minHeight: 8,
-            color: color,
-            backgroundColor: AppColors.bg,
+        const SizedBox(width: 20),
+        // Label & details
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                label,
+                style: const TextStyle(
+                  color: AppColors.textPrimary,
+                  fontWeight: FontWeight.w700,
+                  fontSize: 14,
+                ),
+              ),
+              const SizedBox(height: 4),
+              Text(
+                value,
+                style: TextStyle(
+                  color: color,
+                  fontWeight: FontWeight.w900,
+                  fontSize: 22,
+                ),
+              ),
+              const SizedBox(height: 8),
+              // Small colored bar underneath
+              ClipRRect(
+                borderRadius: BorderRadius.circular(4),
+                child: LinearProgressIndicator(
+                  value: normalized,
+                  minHeight: 5,
+                  color: color,
+                  backgroundColor: color.withValues(alpha: 0.12),
+                ),
+              ),
+            ],
           ),
         ),
       ],

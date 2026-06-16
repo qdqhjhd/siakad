@@ -84,6 +84,11 @@ class AkademikService {
     return nilaiList.where((nilai) => nilai.nilaiAngka == null).length;
   }
 
+  // Update dosen pembimbing for a mahasiswa
+  void updateDosenPembimbing(String nim, String? nidn) {
+    final mhs = AppData.daftarMahasiswa.firstWhere((m) => m.nim == nim, orElse: () => throw Exception('Mahasiswa not found'));
+    mhs.dosenPembimbingNidn = nidn;
+  }
   double persentaseKehadiranMahasiswa(String nim) {
     final preset = <String, double>{
       '2024010001': 0.92,
@@ -101,8 +106,12 @@ class AkademikService {
   }
 
   List<KelasKuliah> kelasDosenAktif() {
+    final kelasIds = AppData.daftarDosenPengajar
+        .where((dp) => dp.nidnDosen == AppData.currentDosenNidn)
+        .map((dp) => dp.idKelas)
+        .toSet();
     return AppData.daftarKelas.where((kelas) {
-      return kelas.dosenPengampu.trim() == AppData.currentDosenNama.trim() &&
+      return kelasIds.contains(kelas.id) &&
           kelas.kodeProdi == AppData.currentDosenProdi;
     }).toList();
   }
@@ -173,6 +182,8 @@ class AkademikService {
   }
 
   bool ambilDraft(String idKelas) {
+    // Prevent adding classes if KRS already submitted (pending)
+    if (krsPendingMahasiswaAktif().isNotEmpty) return false;
     if (sudahAmbilKelas(idKelas)) return false;
 
     final kelas = AppData.daftarKelas.firstWhere((k) => k.id == idKelas);
@@ -191,6 +202,7 @@ class AkademikService {
     );
     return true;
   }
+
 
   void batalDraft(String idKelas) {
     AppData.daftarNilai.removeWhere(
@@ -218,6 +230,7 @@ class AkademikService {
 
     if (draftNilai.isNotEmpty) {
       final mahasiswa = mahasiswaAktif();
+      mahasiswa.catatanKrs = null; // Clear rejection note on submission
       final dosenNidn = mahasiswa.dosenPembimbingNidn;
       if (dosenNidn != null) {
         NotificationService.addNotification(
@@ -282,8 +295,25 @@ class AkademikService {
     nilai.statusKrs = 'draft';
   }
 
+  void tolakKrsMhs(String nim, String alasan) {
+    final pendingKrs = AppData.daftarNilai.where(
+      (n) => n.nim == nim && n.statusKrs == 'pending',
+    );
+    for (var n in pendingKrs) {
+      n.statusKrs = 'draft';
+    }
+    try {
+      final mhs = AppData.daftarMahasiswa.firstWhere((m) => m.nim == nim);
+      mhs.catatanKrs = alasan;
+    } catch (_) {}
+  }
+
   void validasiKrs(Nilai nilai) {
     nilai.statusKrs = 'valid';
+    try {
+      final mhs = AppData.daftarMahasiswa.firstWhere((m) => m.nim == nilai.nim);
+      mhs.catatanKrs = null;
+    } catch (_) {}
   }
 
   String nilaiHuruf(double nilai) {
@@ -292,5 +322,27 @@ class AkademikService {
     if (nilai >= 65) return 'C';
     if (nilai >= 50) return 'D';
     return 'E';
+  }
+
+  /// Konversi DateTime.weekday (1=Senin…7=Minggu) ke nama hari Indonesia
+  String namaHariDari(DateTime tanggal) {
+    const namaHari = ['', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu', 'Minggu'];
+    return namaHari[tanggal.weekday];
+  }
+
+  /// Jadwal kelas mahasiswa aktif pada hari tertentu (berdasarkan KRS valid)
+  List<KelasKuliah> jadwalPadaHari(String hari) {
+    final krsValid = krsValidMahasiswaAktif();
+    final idKelasValid = krsValid.map((n) => n.idKelasKuliah).toSet();
+    return AppData.daftarKelas
+        .where((kelas) => idKelasValid.contains(kelas.id) && kelas.hari == hari)
+        .toList()
+      ..sort((a, b) => a.jamMulai.compareTo(b.jamMulai));
+  }
+
+  /// Jadwal hari ini (real-time)
+  List<KelasKuliah> jadwalHariIni() {
+    final hariIni = namaHariDari(DateTime.now());
+    return jadwalPadaHari(hariIni);
   }
 }

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../data/app_data.dart';
 import '../services/akademik_service.dart';
 import '../theme/app_colors.dart';
 import '../widgets/cyber_widgets.dart';
@@ -9,6 +10,10 @@ class ProfilePage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final mahasiswa = const AkademikService().mahasiswaAktif();
+    final prodi = AppData.daftarProdi.firstWhere(
+      (p) => p.kodeProdi == mahasiswa.kodeProdi,
+      orElse: () => AppData.daftarProdi.first,
+    );
 
     String getInitials(String name) {
       if (name.isEmpty) return '';
@@ -110,10 +115,10 @@ class ProfilePage extends StatelessWidget {
                                 child: _infoGrid([
                                   _infoItem('NIM', mahasiswa.nim),
                                   _infoItem('Nama Mahasiswa', mahasiswa.namaLengkap),
-                                  _infoItem('Program Studi', 'Kedokteran'),
+                                  _infoItem('Program Studi', prodi.namaProdi),
                                   _infoItem('Konsentrasi', '-'),
-                                  _infoItem('Periode Masuk', '2025 Ganjil'),
-                                  _infoItem('Tahun Kurikulum', '2024'),
+                                  _infoItem('Periode Masuk', '${mahasiswa.angkatan} Ganjil'),
+                                  _infoItem('Tahun Kurikulum', '${mahasiswa.angkatan}'),
                                   _infoItem('Sistem Kuliah', 'Reguler'),
                                   _infoItem('Kelas / Kelompok', '-'),
                                   _infoItem('Jenis Pendaftaran', 'Peserta Didik Baru'),

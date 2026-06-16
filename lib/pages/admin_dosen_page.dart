@@ -32,7 +32,7 @@ class _AdminDosenPageState extends State<AdminDosenPage> {
               children: [
                 TextField(
                   controller: nidnController,
-                  style: const TextStyle(color: AppColors.white),
+                  style: const TextStyle(color: AppColors.textPrimary),
                   decoration: const InputDecoration(
                     labelText: 'NIDN',
                     labelStyle: TextStyle(color: AppColors.primaryLight),
@@ -40,7 +40,7 @@ class _AdminDosenPageState extends State<AdminDosenPage> {
                 ),
                 TextField(
                   controller: namaController,
-                  style: const TextStyle(color: AppColors.white),
+                  style: const TextStyle(color: AppColors.textPrimary),
                   decoration: const InputDecoration(
                     labelText: 'Nama Dosen',
                     labelStyle: TextStyle(color: AppColors.primaryLight),
@@ -49,7 +49,7 @@ class _AdminDosenPageState extends State<AdminDosenPage> {
                 DropdownButtonFormField<String>(
                   initialValue: kodeProdi,
                   dropdownColor: AppColors.surface,
-                  style: const TextStyle(color: AppColors.white),
+                  style: const TextStyle(color: AppColors.textPrimary),
                   decoration: const InputDecoration(
                     labelText: 'Prodi',
                     labelStyle: TextStyle(color: AppColors.primaryLight),
@@ -116,8 +116,8 @@ class _AdminDosenPageState extends State<AdminDosenPage> {
   void hapusDosen(int index) {
     final dosen = AppData.daftarDosen[index];
 
-    final sedangMengajar = AppData.daftarKelas.any(
-      (kelas) => kelas.dosenPengampu.trim() == dosen.nama.trim(),
+    final sedangMengajar = AppData.daftarDosenPengajar.any(
+      (dp) => dp.nidnDosen == dosen.nidn,
     );
 
     if (sedangMengajar) {
@@ -136,12 +136,19 @@ class _AdminDosenPageState extends State<AdminDosenPage> {
     });
   }
 
+  List<Dosen> getDosenMengajar() {
+    // Return list of dosen who are assigned to teach classes
+    return AppData.daftarDosen.where((dosen) {
+      return AppData.daftarDosenPengajar.any((dp) => dp.nidnDosen == dosen.nidn);
+    }).toList();
+  }
+
+  // Helper to get program name from kodeProdi
   String getNamaProdi(String kodeProdi) {
     final prodi = AppData.daftarProdi.firstWhere(
       (p) => p.kodeProdi == kodeProdi,
       orElse: () => AppData.daftarProdi.first,
     );
-
     return prodi.namaProdi;
   }
 
@@ -149,18 +156,18 @@ class _AdminDosenPageState extends State<AdminDosenPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColors.bg,
-      body: AppData.daftarDosen.isEmpty
+      body: getDosenMengajar().isEmpty
           ? const Center(
               child: Text(
                 'Belum ada data dosen',
-                style: TextStyle(color: AppColors.white),
+                style: TextStyle(color: AppColors.textPrimary),
               ),
             )
           : ListView.builder(
               padding: const EdgeInsets.all(12),
-              itemCount: AppData.daftarDosen.length,
+              itemCount: getDosenMengajar().length,
               itemBuilder: (context, index) {
-                final dosen = AppData.daftarDosen[index];
+                final dosen = getDosenMengajar()[index];
 
                 return Card(
                   color: AppColors.surface,
@@ -207,11 +214,11 @@ class _AdminDosenPageState extends State<AdminDosenPage> {
                 );
               },
             ),
-      floatingActionButton: FloatingActionButton(
+      floatingActionButton: FloatingActionButton.extended(
         backgroundColor: AppColors.primaryLight,
-        foregroundColor: Colors.black,
         onPressed: () => formDosen(),
-        child: const Icon(Icons.add),
+        icon: const Icon(Icons.add),
+        label: const Text('+ Tambah'),
       ),
     );
   }

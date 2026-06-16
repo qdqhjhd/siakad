@@ -13,17 +13,18 @@ class AdminMahasiswaPage extends StatefulWidget {
 class _AdminMahasiswaPageState extends State<AdminMahasiswaPage> {
   void formMahasiswa({Mahasiswa? mahasiswa, int? index}) {
     final nimController = TextEditingController(text: mahasiswa?.nim ?? '');
-    final namaController = TextEditingController(
-      text: mahasiswa?.namaLengkap ?? '',
-    );
+    final namaController = TextEditingController(text: mahasiswa?.namaLengkap ?? '');
     final angkatanController = TextEditingController(
       text: mahasiswa?.angkatan.toString() ?? '',
     );
 
     bool jk = mahasiswa?.jk ?? false;
-    String kodeProdi =
-        mahasiswa?.kodeProdi ?? AppData.daftarProdi.first.kodeProdi;
+    String kodeProdi = mahasiswa?.kodeProdi ?? AppData.daftarProdi.first.kodeProdi;
     DateTime tanggalLahir = mahasiswa?.tanggalLahir ?? DateTime(2005, 1, 1);
+    bool isAktif = mahasiswa?.isAktif ?? true;
+
+    String dosenPembimbingNidn = mahasiswa?.dosenPembimbingNidn ??
+        AppData.daftarDosen.first.nidn;
 
     final tanggalController = TextEditingController(
       text: '${tanggalLahir.day}-${tanggalLahir.month}-${tanggalLahir.year}',
@@ -32,22 +33,32 @@ class _AdminMahasiswaPageState extends State<AdminMahasiswaPage> {
     showDialog(
       context: context,
       builder: (_) => AlertDialog(
-        backgroundColor: AppColors.surface,
+        backgroundColor: AppColors.white,
         title: Text(
           mahasiswa == null ? 'Tambah Mahasiswa' : 'Edit Mahasiswa',
           style: const TextStyle(color: AppColors.primaryLight),
         ),
         content: StatefulBuilder(
           builder: (context, setDialogState) {
+            final dosenSesuaiProdi = AppData.daftarDosen
+                .where((dosen) => dosen.kodeProdi == kodeProdi)
+                .toList();
+
+            if (dosenSesuaiProdi.isNotEmpty &&
+                !dosenSesuaiProdi.any((d) => d.nidn == dosenPembimbingNidn)) {
+              dosenPembimbingNidn = dosenSesuaiProdi.first.nidn;
+            }
+
             return SingleChildScrollView(
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   darkInput(controller: nimController, label: 'NIM'),
                   darkInput(controller: namaController, label: 'Nama Lengkap'),
+
                   DropdownButtonFormField<bool>(
-                    initialValue: jk,
-                    dropdownColor: AppColors.surface,
+                    value: jk,
+                    dropdownColor: AppColors.white,
                     style: const TextStyle(color: AppColors.white),
                     decoration: darkDropdownDecoration('Jenis Kelamin'),
                     items: const [
@@ -60,10 +71,12 @@ class _AdminMahasiswaPageState extends State<AdminMahasiswaPage> {
                       });
                     },
                   ),
+
                   const SizedBox(height: 10),
+
                   DropdownButtonFormField<String>(
-                    initialValue: kodeProdi,
-                    dropdownColor: AppColors.surface,
+                    value: kodeProdi,
+                    dropdownColor: AppColors.white,
                     style: const TextStyle(color: AppColors.white),
                     decoration: darkDropdownDecoration('Prodi'),
                     items: AppData.daftarProdi.map((prodi) {
@@ -75,15 +88,45 @@ class _AdminMahasiswaPageState extends State<AdminMahasiswaPage> {
                     onChanged: (value) {
                       setDialogState(() {
                         kodeProdi = value!;
+                        final dosenBaru = AppData.daftarDosen
+                            .where((d) => d.kodeProdi == kodeProdi)
+                            .toList();
+
+                        if (dosenBaru.isNotEmpty) {
+                          dosenPembimbingNidn = dosenBaru.first.nidn;
+                        }
                       });
                     },
                   ),
+
                   const SizedBox(height: 10),
+
+                  DropdownButtonFormField<String>(
+                    value: dosenSesuaiProdi.isEmpty ? null : dosenPembimbingNidn,
+                    dropdownColor: AppColors.white,
+                    style: const TextStyle(color: AppColors.white),
+                    decoration: darkDropdownDecoration('Dosen Pembimbing'),
+                    items: dosenSesuaiProdi.map((dosen) {
+                      return DropdownMenuItem(
+                        value: dosen.nidn,
+                        child: Text('${dosen.nama} - ${dosen.nidn}'),
+                      );
+                    }).toList(),
+                    onChanged: (value) {
+                      setDialogState(() {
+                        dosenPembimbingNidn = value!;
+                      });
+                    },
+                  ),
+
+                  const SizedBox(height: 10),
+
                   darkInput(
                     controller: angkatanController,
                     label: 'Angkatan',
                     keyboardType: TextInputType.number,
                   ),
+
                   TextField(
                     controller: tanggalController,
                     readOnly: true,
@@ -91,10 +134,7 @@ class _AdminMahasiswaPageState extends State<AdminMahasiswaPage> {
                     decoration: const InputDecoration(
                       labelText: 'Tanggal Lahir',
                       labelStyle: TextStyle(color: AppColors.primaryLight),
-                      suffixIcon: Icon(
-                        Icons.calendar_month,
-                        color: AppColors.primaryLight,
-                      ),
+                      suffixIcon: Icon(Icons.calendar_month, color: AppColors.primaryLight),
                       enabledBorder: UnderlineInputBorder(
                         borderSide: BorderSide(color: AppColors.primaryLight),
                       ),
@@ -119,6 +159,25 @@ class _AdminMahasiswaPageState extends State<AdminMahasiswaPage> {
                       }
                     },
                   ),
+
+                  if (mahasiswa != null) ...[
+                    const SizedBox(height: 10),
+                    DropdownButtonFormField<bool>(
+                      value: isAktif,
+                      dropdownColor: AppColors.white,
+                      style: const TextStyle(color: AppColors.white),
+                      decoration: darkDropdownDecoration('Status Keaktifan'),
+                      items: const [
+                        DropdownMenuItem(value: true, child: Text('Aktif')),
+                        DropdownMenuItem(value: false, child: Text('Tidak Aktif')),
+                      ],
+                      onChanged: (value) {
+                        setDialogState(() {
+                          isAktif = value!;
+                        });
+                      },
+                    ),
+                  ],
                 ],
               ),
             );
@@ -154,18 +213,20 @@ class _AdminMahasiswaPageState extends State<AdminMahasiswaPage> {
                       kodeProdi: kodeProdi,
                       angkatan: int.parse(angkatanController.text),
                       tanggalLahir: tanggalLahir,
+                      dosenPembimbingNidn: dosenPembimbingNidn,
+                      isAktif: isAktif,
                     ),
                   );
                 } else {
                   AppData.daftarMahasiswa[index!].nim = nimController.text;
-                  AppData.daftarMahasiswa[index].namaLengkap =
-                      namaController.text;
+                  AppData.daftarMahasiswa[index].namaLengkap = namaController.text;
                   AppData.daftarMahasiswa[index].jk = jk;
                   AppData.daftarMahasiswa[index].kodeProdi = kodeProdi;
-                  AppData.daftarMahasiswa[index].angkatan = int.parse(
-                    angkatanController.text,
-                  );
+                  AppData.daftarMahasiswa[index].angkatan =
+                      int.parse(angkatanController.text);
                   AppData.daftarMahasiswa[index].tanggalLahir = tanggalLahir;
+                  AppData.daftarMahasiswa[index].dosenPembimbingNidn = dosenPembimbingNidn;
+                  AppData.daftarMahasiswa[index].isAktif = isAktif;
                 }
               });
 
@@ -243,109 +304,118 @@ class _AdminMahasiswaPageState extends State<AdminMahasiswaPage> {
     return prodi.namaProdi;
   }
 
+  String getNamaDosen(String nidn) {
+    final dosen = AppData.daftarDosen.firstWhere(
+      (d) => d.nidn == nidn,
+      orElse: () => AppData.daftarDosen.first,
+    );
+
+    return dosen.nama;
+  }
+
   @override
   Widget build(BuildContext context) {
-    return Column(
-      children: [
-        Padding(
-          padding: const EdgeInsets.all(16.0),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              const Text(
-                'Daftar Mahasiswa',
-                style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: AppColors.textPrimary),
+    return Scaffold(
+      backgroundColor: AppColors.bg,
+      body: AppData.daftarMahasiswa.isEmpty
+          ? const Center(
+              child: Text(
+                'Belum ada data mahasiswa',
+                style: TextStyle(color: AppColors.white),
               ),
-              ElevatedButton.icon(
-                onPressed: () => formMahasiswa(),
-                icon: const Icon(Icons.add),
-                label: const Text('TAMBAH'),
-              ),
-            ],
-          ),
-        ),
-        Expanded(
-          child: AppData.daftarMahasiswa.isEmpty
-              ? const Center(
-                  child: Text(
-                    'Belum ada data mahasiswa',
-                    style: TextStyle(color: AppColors.textSecondary),
-                  ),
-                )
-              : ListView.builder(
-                  padding: const EdgeInsets.symmetric(horizontal: 16),
-                  itemCount: AppData.daftarMahasiswa.length,
-                  itemBuilder: (context, index) {
-                    final mhs = AppData.daftarMahasiswa[index];
+            )
+          : ListView.builder(
+              padding: const EdgeInsets.all(12),
+              itemCount: AppData.daftarMahasiswa.length,
+              itemBuilder: (context, index) {
+                final mhs = AppData.daftarMahasiswa[index];
 
-                    return Container(
-                      margin: const EdgeInsets.only(bottom: 16),
-                      padding: const EdgeInsets.all(16),
-                      decoration: BoxDecoration(
-                        color: AppColors.white,
-                        borderRadius: BorderRadius.circular(20),
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.black.withValues(alpha: 0.03),
-                            blurRadius: 10,
-                            offset: const Offset(0, 4),
-                          ),
-                        ],
+                return Card(
+                  color: AppColors.white,
+                  elevation: 10,
+                  shadowColor: AppColors.primaryLight,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(18),
+                    side: const BorderSide(color: AppColors.primaryLight, width: 0.8),
+                  ),
+                  child: ListTile(
+                    leading: CircleAvatar(
+                      backgroundColor: AppColors.primaryLight,
+                      child: Text(
+                        mhs.namaLengkap[0],
+                        style: const TextStyle(
+                          color: Colors.black,
+                          fontWeight: FontWeight.bold,
+                        ),
                       ),
-                      child: Row(
-                        children: [
-                          CircleAvatar(
-                            radius: 24,
-                            backgroundColor: AppColors.bg,
-                            child: Text(
-                              mhs.namaLengkap[0],
-                              style: const TextStyle(
-                                color: AppColors.primary,
-                                fontWeight: FontWeight.bold,
-                                fontSize: 18,
-                              ),
+                    ),
+                    title: Row(
+                      children: [
+                        Text(
+                          mhs.namaLengkap,
+                          style: const TextStyle(
+                            color: AppColors.textPrimary,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                          decoration: BoxDecoration(
+                            color: mhs.isAktif ? Colors.green.withValues(alpha: 0.1) : Colors.red.withValues(alpha: 0.1),
+                            borderRadius: BorderRadius.circular(12),
+                            border: Border.all(
+                              color: mhs.isAktif ? Colors.green : Colors.red,
+                              width: 0.8,
                             ),
                           ),
-                          const SizedBox(width: 16),
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  mhs.namaLengkap,
-                                  style: const TextStyle(
-                                    color: AppColors.textPrimary,
-                                    fontWeight: FontWeight.bold,
-                                    fontSize: 16,
-                                  ),
-                                ),
-                                const SizedBox(height: 4),
-                                Text(
-                                  'NIM: ${mhs.nim} • ${getNamaProdi(mhs.kodeProdi)}',
-                                  style: const TextStyle(color: AppColors.textSecondary, fontSize: 13),
-                                ),
-                                Text(
-                                  'Angkatan: ${mhs.angkatan} • ${mhs.jk ? 'Perempuan' : 'Laki-laki'}',
-                                  style: const TextStyle(color: AppColors.textSecondary, fontSize: 12),
-                                ),
-                              ],
+                          child: Text(
+                            mhs.isAktif ? 'Aktif' : 'Tidak Aktif',
+                            style: TextStyle(
+                              color: mhs.isAktif ? Colors.green : Colors.red,
+                              fontSize: 10,
+                              fontWeight: FontWeight.bold,
                             ),
                           ),
-                          IconButton(
-                            onPressed: () => formMahasiswa(mahasiswa: mhs, index: index),
-                            icon: const Icon(Icons.edit_outlined, color: AppColors.primaryLight, size: 20),
-                          ),
-                          IconButton(
-                            onPressed: () => hapusMahasiswa(index),
-                            icon: const Icon(Icons.delete_outline, color: Colors.redAccent, size: 20),
-                          ),
-                        ],
-                      ),
-                    );
-                  },
-                ),
-        ),
-      ],
+                        ),
+                      ],
+                    ),
+                    subtitle: Text(
+                      'NIM: ${mhs.nim}\n'
+                      'JK: ${mhs.jk ? 'Perempuan' : 'Laki-laki'}\n'
+                      'Prodi: ${getNamaProdi(mhs.kodeProdi)}\n'
+                      'Angkatan: ${mhs.angkatan}\n'
+                      'Tanggal Lahir: ${mhs.tanggalLahir.day}-${mhs.tanggalLahir.month}-${mhs.tanggalLahir.year}\n'
+                      'Pembimbing: ${getNamaDosen(mhs.dosenPembimbingNidn ?? "")}',
+                      style: const TextStyle(color: AppColors.grey),
+                    ),
+                    isThreeLine: false,
+                    trailing: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        IconButton(
+                          tooltip: 'Edit',
+                          onPressed: () =>
+                              formMahasiswa(mahasiswa: mhs, index: index),
+                          icon: const Icon(Icons.edit, color: AppColors.primaryLight),
+                        ),
+                        IconButton(
+                          tooltip: 'Hapus',
+                          onPressed: () => hapusMahasiswa(index),
+                          icon: const Icon(Icons.delete, color: Colors.redAccent),
+                        ),
+                      ],
+                    ),
+                  ),
+                );
+              },
+            ),
+      floatingActionButton: FloatingActionButton(
+        backgroundColor: AppColors.primaryLight,
+        foregroundColor: Colors.black,
+        onPressed: () => formMahasiswa(),
+        child: const Icon(Icons.add),
+      ),
     );
   }
 }

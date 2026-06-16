@@ -6,9 +6,12 @@ import 'kelas_kuliah_page.dart';
 import 'mata_kuliah_page.dart';
 import 'prodi_page.dart';
 import 'admin_mahasiswa_page.dart';
-import '../utils/logout.dart';
+import 'ruangan_page.dart';
+import 'dosen_pengajar_page.dart';
 import '../widgets/cyber_scaffold.dart';
 import '../widgets/cyber_widgets.dart';
+import '../widgets/topbar_nav.dart';
+import 'presensi_page.dart';
 
 class AdminUnivPage extends StatefulWidget {
   const AdminUnivPage({super.key});
@@ -17,32 +20,112 @@ class AdminUnivPage extends StatefulWidget {
   State<AdminUnivPage> createState() => _AdminUnivPageState();
 }
 
-class _AdminUnivPageState extends State<AdminUnivPage> {
-  int _selectedIndex = 0;
+enum _UnivPageEnum { beranda, prodi, mahasiswa, dosen, matkul, kelas, ruangan, dosenPengajar, presensi }
 
-  final List<Widget> _pages = const [
-    _AdminDashboard(),
-    ProdiPage(),
-    AdminMahasiswaPage(),
-    AdminDosenPage(),
-    MataKuliahPage(),
-    KelasKuliahPage(),
-  ];
+class _AdminUnivPageState extends State<AdminUnivPage> {
+  _UnivPageEnum _activePage = _UnivPageEnum.beranda;
+  String? _openDropdown;
+
+  void _goTo(_UnivPageEnum page) => setState(() { _activePage = page; _openDropdown = null; });
+  void _toggle(String key) => setState(() => _openDropdown = _openDropdown == key ? null : key);
+
+  List<String> get _breadcrumbs {
+    switch (_activePage) {
+      case _UnivPageEnum.prodi: return ['Beranda', 'Master Data', 'Prodi'];
+      case _UnivPageEnum.dosen: return ['Beranda', 'Master Data', 'Dosen'];
+      case _UnivPageEnum.mahasiswa: return ['Beranda', 'Akademik', 'Mahasiswa'];
+      case _UnivPageEnum.matkul: return ['Beranda', 'Akademik', 'Mata Kuliah'];
+      case _UnivPageEnum.kelas: return ['Beranda', 'Akademik', 'Kelas Kuliah'];
+      case _UnivPageEnum.ruangan: return ['Beranda', 'Akademik', 'Ruangan'];
+      case _UnivPageEnum.dosenPengajar: return ['Beranda', 'Akademik', 'Dosen Pengajar'];
+      case _UnivPageEnum.presensi: return ['Beranda', 'Akademik', 'Presensi Kuliah'];
+      default: return ['Beranda', 'Dashboard'];
+    }
+  }
+
+  Widget _buildNavBar() {
+    return Container(
+      color: Colors.white,
+      child: Column(
+        children: [
+          Row(
+            children: [
+              NavItem(label: 'Beranda', isActive: _activePage == _UnivPageEnum.beranda, onTap: () => _goTo(_UnivPageEnum.beranda)),
+              NavDropdownItem(
+                label: 'Master Data',
+                isOpen: _openDropdown == 'master',
+                isActive: _activePage == _UnivPageEnum.prodi || _activePage == _UnivPageEnum.dosen,
+                onTap: () => _toggle('master'),
+              ),
+              NavDropdownItem(
+                label: 'Akademik',
+                isOpen: _openDropdown == 'akademik',
+                isActive: _activePage != _UnivPageEnum.beranda && _activePage != _UnivPageEnum.prodi && _activePage != _UnivPageEnum.dosen,
+                onTap: () => _toggle('akademik'),
+              ),
+            ],
+          ),
+          if (_openDropdown == 'master')
+            DropdownPanel(
+              title: 'Master Data',
+              items: [
+                DropdownOption(icon: Icons.school_rounded, title: 'Prodi', subtitle: 'Manajemen program studi', onTap: () => _goTo(_UnivPageEnum.prodi)),
+                DropdownOption(icon: Icons.person_search_rounded, title: 'Dosen', subtitle: 'Data induk dosen', onTap: () => _goTo(_UnivPageEnum.dosen)),
+              ],
+            ),
+          if (_openDropdown == 'akademik')
+            DropdownPanel(
+              title: 'Akademik',
+              items: [
+                DropdownOption(icon: Icons.people_rounded, title: 'Mahasiswa', subtitle: 'Data seluruh mahasiswa', onTap: () => _goTo(_UnivPageEnum.mahasiswa)),
+                DropdownOption(icon: Icons.library_books_rounded, title: 'Mata Kuliah', subtitle: 'Manajemen kurikulum universitas', onTap: () => _goTo(_UnivPageEnum.matkul)),
+                DropdownOption(icon: Icons.class_rounded, title: 'Kelas Kuliah', subtitle: 'Seluruh jadwal & kelas', onTap: () => _goTo(_UnivPageEnum.kelas)),
+                DropdownOption(icon: Icons.meeting_room_rounded, title: 'Ruangan', subtitle: 'Manajemen fasilitas ruangan', onTap: () => _goTo(_UnivPageEnum.ruangan)),
+                DropdownOption(icon: Icons.co_present_rounded, title: 'Dosen Pengajar', subtitle: 'Penugasan mengajar dosen', onTap: () => _goTo(_UnivPageEnum.dosenPengajar)),
+                DropdownOption(icon: Icons.fingerprint_rounded, title: 'Presensi Kuliah', subtitle: 'Lihat seluruh rekap presensi', onTap: () => _goTo(_UnivPageEnum.presensi)),
+              ],
+            ),
+        ],
+      ),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
+    final List<Widget> pages = [
+      const _AdminDashboard(),
+      const ProdiPage(),
+      const AdminMahasiswaPage(),
+      const AdminDosenPage(),
+      const MataKuliahPage(),
+      const KelasKuliahPage(),
+      const RuanganPage(),
+      const DosenPengajarPage(),
+    ];
+
+    Widget content;
+    switch (_activePage) {
+      case _UnivPageEnum.prodi: content = pages[1]; break;
+      case _UnivPageEnum.mahasiswa: content = pages[2]; break;
+      case _UnivPageEnum.dosen: content = pages[3]; break;
+      case _UnivPageEnum.matkul: content = pages[4]; break;
+      case _UnivPageEnum.kelas: content = pages[5]; break;
+      case _UnivPageEnum.ruangan: content = pages[6]; break;
+      case _UnivPageEnum.dosenPengajar: content = pages[7]; break;
+      case _UnivPageEnum.presensi: content = const PresensiPage(role: 'admin_univ'); break;
+      default: content = pages[0]; break;
+    }
+
     return CyberScaffold(
-      sidebarItems: const [
-        SidebarItem(icon: Icons.analytics_rounded, label: 'Dashboard'),
-        SidebarItem(icon: Icons.school_rounded, label: 'Prodi'),
-        SidebarItem(icon: Icons.people_rounded, label: 'Mahasiswa'),
-        SidebarItem(icon: Icons.person_search_rounded, label: 'Dosen'),
-        SidebarItem(icon: Icons.library_books_rounded, label: 'Matkul'),
-        SidebarItem(icon: Icons.class_rounded, label: 'Kelas'),
-      ],
-      selectedIndex: _selectedIndex,
-      onItemSelected: (index) => setState(() => _selectedIndex = index),
-      child: _pages[_selectedIndex],
+      userName: 'Admin Universitas',
+      userRole: 'admin_univ',
+      breadcrumbs: _breadcrumbs,
+      child: Column(
+        children: [
+          _buildNavBar(),
+          Expanded(child: content),
+        ],
+      ),
     );
   }
 }
@@ -62,31 +145,7 @@ class _AdminDashboard extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              const Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    'Admin Panel',
-                    style: TextStyle(fontSize: 32, fontWeight: FontWeight.w900, color: AppColors.textPrimary),
-                  ),
-                  Text('Kelola seluruh data akademik universitas.', style: TextStyle(color: AppColors.textSecondary)),
-                ],
-              ),
-              ElevatedButton.icon(
-                onPressed: () => logout(context),
-                icon: const Icon(Icons.logout, size: 18),
-                label: const Text('LOGOUT'),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: AppColors.primary,
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 30),
+          const SizedBox(height: 16),
           Row(
             children: [
               Expanded(

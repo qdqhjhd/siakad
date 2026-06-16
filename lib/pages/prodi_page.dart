@@ -100,9 +100,10 @@ class _ProdiPageState extends State<ProdiPage> {
                 );
               },
             ),
-      floatingActionButton: FloatingActionButton(
+      floatingActionButton: FloatingActionButton.extended(
         onPressed: () => formProdi(),
-        child: const Icon(Icons.add),
+        icon: const Icon(Icons.add),
+        label: const Text('Tambah'),
       ),
     );
   }
