@@ -1,16 +1,19 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
-import '../data/app_data.dart';
+
 import '../services/auth_service.dart';
 import '../theme/app_colors.dart';
 import '../widgets/floating_lines.dart';
+import '../models/user.dart';
+import '../data/app_data.dart';
 import 'admin_prodi_page.dart';
 import 'admin_univ_page.dart';
 import 'dosen_page.dart';
 import 'mahasiswa_dashboard_page.dart';
 import 'pimpinan_univ_page.dart';
 import 'pimpinan_prodi_page.dart';
+import 'package:postgres/postgres.dart';
 
 // ─── Data akun test terkelompok per role ────────────────────────────────────
 const _testCredentials = [
@@ -103,13 +106,25 @@ class _LoginPageState extends State<LoginPage> {
   final _authService = const AuthService();
 
   // Autocomplete
+  List<User> _loadedUsers = [];
   List<_SuggestionItem> _suggestions = [];
   bool _showSuggestions = false;
   bool _showPassword = false;
 
-  // Semua username valid dari AppData
+  @override
+  void initState() {
+    super.initState();
+    _loadUsers();
+  }
+
+  Future<void> _loadUsers() async {
+    final users = await _authService.getAllUsers();
+    setState(() => _loadedUsers = users);
+  }
+
+  // Semua username valid dari database
   List<_SuggestionItem> get _allSuggestions {
-    return AppData.users.map((u) {
+    return _loadedUsers.map((u) {
       String role = '';
       String nama = u.nama;
       Color color = AppColors.primary;
@@ -142,16 +157,18 @@ class _LoginPageState extends State<LoginPage> {
 
   void _selectSuggestion(_SuggestionItem item) {
     _usernameController.text = item.username;
-    // Auto-fill password from AppData
-    final user = AppData.users.firstWhere((u) => u.username == item.username, orElse: () => AppData.users.first);
-    _passwordController.text = user.password;
+    // Auto-fill password from _loadedUsers
+    if (_loadedUsers.isNotEmpty) {
+      final user = _loadedUsers.firstWhere((u) => u.username == item.username, orElse: () => _loadedUsers.first);
+      _passwordController.text = user.password;
+    }
     setState(() { _suggestions = []; _showSuggestions = false; });
     _passwordFocus.requestFocus();
   }
 
-  void login() {
+  Future<void> login() async {
     FocusScope.of(context).unfocus();
-    final user = _authService.login(_usernameController.text.trim(), _passwordController.text.trim());
+    final user = await _authService.login(_usernameController.text.trim(), _passwordController.text.trim());
 
     if (user == null) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -159,6 +176,9 @@ class _LoginPageState extends State<LoginPage> {
       );
       return;
     }
+
+    // Load all data from PostgreSQL database
+    await AppData.loadFromDatabase();
 
     if (user.role == 'admin_univ') {
       Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => const AdminUnivPage()));

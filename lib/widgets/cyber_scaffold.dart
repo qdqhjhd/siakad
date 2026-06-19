@@ -349,22 +349,26 @@ class _SidebarNav extends StatelessWidget {
       ),
       child: Column(
         children: [
-          const SizedBox(height: 20),
-          ...items.asMap().entries.map((entry) {
-            final i = entry.key;
-            final item = entry.value;
-            final isActive = i == selectedIndex;
-
-            return _SidebarNavItem(
-              icon: item.icon,
-              label: item.label,
-              isActive: isActive,
-              onTap: () => onItemSelected?.call(i),
-            );
-          }),
-          const Spacer(),
+          const SizedBox(height: 12),
+          Expanded(
+            child: SingleChildScrollView(
+              child: Column(
+                children: items.asMap().entries.map((entry) {
+                  final i = entry.key;
+                  final item = entry.value;
+                  final isActive = i == selectedIndex;
+                  return _SidebarNavItem(
+                    icon: item.icon,
+                    label: item.label,
+                    isActive: isActive,
+                    onTap: () => onItemSelected?.call(i),
+                  );
+                }).toList(),
+              ),
+            ),
+          ),
           const Divider(height: 1),
-          const SizedBox(height: 8),
+          const SizedBox(height: 4),
           _SidebarNavItem(
             icon: Icons.logout_rounded,
             label: 'Keluar',
@@ -372,7 +376,7 @@ class _SidebarNav extends StatelessWidget {
             isDestructive: true,
             onTap: () => logout(context),
           ),
-          const SizedBox(height: 16),
+          const SizedBox(height: 8),
         ],
       ),
     );

@@ -13,6 +13,10 @@ import '../models/pertemuan_kuliah.dart';
 import '../models/presensi_mahasiswa.dart';
 import '../models/presensi_dosen.dart';
 import '../models/jadwal_krs.dart';
+import '../models/materi_kuliah.dart';
+import 'materi_data.dart';
+import 'package:postgres/postgres.dart';
+import '../database/db_connection.dart';
 
 class AppData {
   static String currentNim = '2024010001';
@@ -40,876 +44,944 @@ static int hitungPesertaKelasValid(String idKelas) {
   ).length;
 }
 
-  static List<Prodi> daftarProdi = [
-    Prodi(
-      kodeProdi: 'ILKOM-01',
-      namaProdi: 'Ilmu Komputer',
-      aliasProdi: 'ILKOM',
-    ),
-    Prodi(kodeProdi: 'FK-02', namaProdi: 'Kedokteran', aliasProdi: 'FK'),
-    Prodi(kodeProdi: 'BIO-03', namaProdi: 'Biologi', aliasProdi: 'BIO'),
-    Prodi(
-      kodeProdi: 'DKV-04',
-      namaProdi: 'Desain Komunikasi Visual',
-      aliasProdi: 'DKV',
-    ),
-  ];
+  static List<Prodi> daftarProdi = [];
+  static List<MataKuliah> daftarMataKuliah = [];
+  static List<Mahasiswa> daftarMahasiswa = [];
+  static List<User> users = [];
+  static List<Dosen> daftarDosen = [];
+  static List<KelasKuliah> daftarKelas = [];
+  static List<Nilai> daftarNilai = [];
+  static List<Ruangan> daftarRuangan = [];
+  static List<DosenPengajar> daftarDosenPengajar = [];
+  static List<JadwalKrs> daftarJadwalKrs = [];
+  static List<JadwalKuliah> daftarJadwalKuliah = [];
+  static List<KRS> daftarKrs = [];
+  static List<PertemuanKuliah> daftarPertemuanKuliah = [];
+  static List<PresensiMahasiswa> daftarPresensiMahasiswa = [];
+  static List<PresensiDosen> daftarPresensiDosen = [];
 
-  static List<MataKuliah> daftarMataKuliah = [
-    MataKuliah(
-      kodeMataKuliah: 'ILKOM101',
-      namaMataKuliah: 'Pemrograman Dasar',
-      jumlahSks: 3,
-      kodeProdi: 'ILKOM-01',
-    ),
-    MataKuliah(
-      kodeMataKuliah: 'ILKOM102',
-      namaMataKuliah: 'Struktur Data',
-      jumlahSks: 3,
-      kodeProdi: 'ILKOM-01',
-    ),
-    MataKuliah(
-      kodeMataKuliah: 'ILKOM103',
-      namaMataKuliah: 'Basis Data',
-      jumlahSks: 3,
-      kodeProdi: 'ILKOM-01',
-    ),
-    MataKuliah(
-      kodeMataKuliah: 'ILKOM204',
-      namaMataKuliah: 'Pemrograman Mobile',
-      jumlahSks: 3,
-      kodeProdi: 'ILKOM-01',
-    ),
-    MataKuliah(
-      kodeMataKuliah: 'ILKOM305',
-      namaMataKuliah: 'Keamanan Siber',
-      jumlahSks: 3,
-      kodeProdi: 'ILKOM-01',
-    ),
-    MataKuliah(
-      kodeMataKuliah: 'FK101',
-      namaMataKuliah: 'Anatomi',
-      jumlahSks: 4,
-      kodeProdi: 'FK-02',
-    ),
-    MataKuliah(
-      kodeMataKuliah: 'FK102',
-      namaMataKuliah: 'Fisiologi',
-      jumlahSks: 4,
-      kodeProdi: 'FK-02',
-    ),
-    MataKuliah(
-      kodeMataKuliah: 'FK103',
-      namaMataKuliah: 'Histologi',
-      jumlahSks: 3,
-      kodeProdi: 'FK-02',
-    ),
-    MataKuliah(
-      kodeMataKuliah: 'FK204',
-      namaMataKuliah: 'Farmakologi Dasar',
-      jumlahSks: 3,
-      kodeProdi: 'FK-02',
-    ),
-    MataKuliah(
-      kodeMataKuliah: 'BIO101',
-      namaMataKuliah: 'Biologi Sel',
-      jumlahSks: 3,
-      kodeProdi: 'BIO-03',
-    ),
-    MataKuliah(
-      kodeMataKuliah: 'BIO102',
-      namaMataKuliah: 'Genetika',
-      jumlahSks: 3,
-      kodeProdi: 'BIO-03',
-    ),
-    MataKuliah(
-      kodeMataKuliah: 'BIO103',
-      namaMataKuliah: 'Ekologi',
-      jumlahSks: 3,
-      kodeProdi: 'BIO-03',
-    ),
-    MataKuliah(
-      kodeMataKuliah: 'BIO204',
-      namaMataKuliah: 'Mikrobiologi',
-      jumlahSks: 3,
-      kodeProdi: 'BIO-03',
-    ),
-    MataKuliah(
-      kodeMataKuliah: 'DKV101',
-      namaMataKuliah: 'Rupa Dasar',
-      jumlahSks: 3,
-      kodeProdi: 'DKV-04',
-    ),
-    MataKuliah(
-      kodeMataKuliah: 'DKV102',
-      namaMataKuliah: 'Tipografi',
-      jumlahSks: 3,
-      kodeProdi: 'DKV-04',
-    ),
-  ];
+  static Future<void> loadFromDatabase() async {
+    final conn = await DBConnection.connect();
+    try {
+      // 1. Prodi
+      final resProdi = await conn.execute('SELECT kode_prodi, nama_prodi, alias_prodi FROM prodi');
+      daftarProdi = resProdi.map((row) => Prodi(
+        kodeProdi: row[0] as String,
+        namaProdi: row[1] as String,
+        aliasProdi: row[2] as String,
+      )).toList();
 
-  static List<Mahasiswa> daftarMahasiswa = [
-  Mahasiswa(
-    nim: '2024010001',
-    namaLengkap: 'David Purnomo',
-    kodeProdi: 'ILKOM-01',
-    angkatan: 2024,
-    jk: false,
-    tanggalLahir: DateTime(2005, 5, 20),
-    dosenPembimbingNidn: 'D001',
-    isAktif: true,
-  ),
-  Mahasiswa(
-    nim: '2024010002',
-    namaLengkap: 'Vidi Lapa',
-    kodeProdi: 'FK-02',
-    angkatan: 2025,
-    jk: true,
-    tanggalLahir: DateTime(2005, 7, 12),
-    dosenPembimbingNidn: 'D004',
-    isAktif: true,
-  ),
-  Mahasiswa(
-    nim: '2024010003',
-    namaLengkap: 'Zhao Yufan',
-    kodeProdi: 'BIO-03',
-    angkatan: 2023,
-    jk: false,
-    tanggalLahir: DateTime(2004, 11, 8),
-    dosenPembimbingNidn: 'D007',
-    isAktif: false,
-  ),
-  Mahasiswa(
-    nim: '2024010004',
-    namaLengkap: 'Salsa Kirana',
-    kodeProdi: 'ILKOM-01',
-    angkatan: 2024,
-    jk: true,
-    tanggalLahir: DateTime(2005, 2, 9),
-    dosenPembimbingNidn: 'D001',
-    isAktif: true,
-  ),
-  Mahasiswa(
-    nim: '2024010005',
-    namaLengkap: 'Raka Mahendra',
-    kodeProdi: 'ILKOM-01',
-    angkatan: 2023,
-    jk: false,
-    tanggalLahir: DateTime(2004, 9, 3),
-    dosenPembimbingNidn: 'D001',
-    isAktif: true,
-  ),
-  Mahasiswa(
-    nim: '2024010006',
-    namaLengkap: 'Nadia Aulia',
-    kodeProdi: 'FK-02',
-    angkatan: 2024,
-    jk: true,
-    tanggalLahir: DateTime(2005, 1, 18),
-    dosenPembimbingNidn: 'D004',
-    isAktif: true,
-  ),
-  Mahasiswa(
-    nim: '2024010007',
-    namaLengkap: 'Bagas Pratama',
-    kodeProdi: 'FK-02',
-    angkatan: 2023,
-    jk: false,
-    tanggalLahir: DateTime(2004, 6, 21),
-    dosenPembimbingNidn: 'D004',
-    isAktif: false,
-  ),
-  Mahasiswa(
-    nim: '2024010008',
-    namaLengkap: 'Maya Saraswati',
-    kodeProdi: 'BIO-03',
-    angkatan: 2024,
-    jk: true,
-    tanggalLahir: DateTime(2005, 10, 14),
-    dosenPembimbingNidn: 'D007',
-    isAktif: true,
-  ),
-  Mahasiswa(
-    nim: '2024010009',
-    namaLengkap: 'Adit Wijaya',
-    kodeProdi: 'BIO-03',
-    angkatan: 2022,
-    jk: false,
-    tanggalLahir: DateTime(2003, 4, 4),
-    dosenPembimbingNidn: 'D007',
-    isAktif: true,
-  ),
-  Mahasiswa(
-    nim: '2024010010',
-    namaLengkap: 'Keisha Putri',
-    kodeProdi: 'DKV-04',
-    angkatan: 2024,
-    jk: true,
-    tanggalLahir: DateTime(2005, 8, 30),
-    dosenPembimbingNidn: 'D010',
-    isAktif: true,
-  ),
-];
+      // 2. MataKuliah
+      final resMk = await conn.execute('SELECT kode_mata_kuliah, nama_mata_kuliah, jumlah_sks, kode_prodi FROM mata_kuliah');
+      daftarMataKuliah = resMk.map((row) => MataKuliah(
+        kodeMataKuliah: row[0] as String,
+        namaMataKuliah: row[1] as String,
+        jumlahSks: row[2] as int,
+        kodeProdi: row[3] as String,
+      )).toList();
 
-  static List<User> users = [
-    User(
-      username: 'david',
-      password: '123',
-      nama: 'David Purnomo',
-      identifier: '2024010001',
-      role: 'mahasiswa',
-    ),
-    User(
-      username: 'vidi',
-      password: '123',
-      nama: 'Vidi Lapa',
-      identifier: '2024010002',
-      role: 'mahasiswa',
-    ),
-    User(
-      username: 'zhao',
-      password: '123',
-      nama: 'Zhao Yufan',
-      identifier: '2024010003',
-      role: 'mahasiswa',
-    ),
-    User(
-      username: 'salsa',
-      password: '123',
-      nama: 'Salsa Kirana',
-      identifier: '2024010004',
-      role: 'mahasiswa',
-    ),
-    User(
-      username: 'raka',
-      password: '123',
-      nama: 'Raka Mahendra',
-      identifier: '2024010005',
-      role: 'mahasiswa',
-    ),
-    User(
-      username: 'nadia',
-      password: '123',
-      nama: 'Nadia Aulia',
-      identifier: '2024010006',
-      role: 'mahasiswa',
-    ),
-    User(
-      username: 'bagas',
-      password: '123',
-      nama: 'Bagas Pratama',
-      identifier: '2024010007',
-      role: 'mahasiswa',
-    ),
-    User(
-      username: 'maya',
-      password: '123',
-      nama: 'Maya Saraswati',
-      identifier: '2024010008',
-      role: 'mahasiswa',
-    ),
-    User(
-      username: 'adit',
-      password: '123',
-      nama: 'Adit Wijaya',
-      identifier: '2024010009',
-      role: 'mahasiswa',
-    ),
-    User(
-      username: 'keisha',
-      password: '123',
-      nama: 'Keisha Putri',
-      identifier: '2024010010',
-      role: 'mahasiswa',
-    ),
-    User(
-      username: 'irfan',
-      password: '123',
-      nama: 'Ir. Arfan',
-      identifier: 'D001',
-      role: 'dosen',
-    ),
-    User(
-      username: 'megumi',
-      password: '123',
-      nama: 'Dr. Megumi Fushiguro',
-      identifier: 'D002',
-      role: 'dosen',
-    ),
-    User(
-      username: 'toji',
-      password: '123',
-      nama: 'Ir. Toji Fushiguro',
-      identifier: 'D003',
-      role: 'dosen',
-    ),
-    User(
-      username: 'yuji',
-      password: '123',
-      nama: 'dr. yuji',
-      identifier: 'D004',
-      role: 'dosen',
-    ),
-    User(
-      username: 'frieren',
-      password: '123',
-      nama: 'dr. Frieren',
-      identifier: 'D005',
-      role: 'dosen',
-    ),
-    User(
-      username: 'lawliet',
-      password: '123',
-      nama: 'dr. Lawliet',
-      identifier: 'D006',
-      role: 'dosen',
-    ),
-    User(
-      username: 'raynata',
-      password: '123',
-      nama: 'Dr. Raynata Bien',
-      identifier: 'D007',
-      role: 'dosen',
-    ),
-    User(
-      username: 'izumi',
-      password: '123',
-      nama: 'Dr. izumi',
-      identifier: 'D008',
-      role: 'dosen',
-    ),
-    User(
-      username: 'nanami',
-      password: '123',
-      nama: 'Dr. Nanami',
-      identifier: 'D009',
-      role: 'dosen',
-    ),
-    User(
-      username: 'rina',
-      password: '123',
-      nama: 'Dr. Rina Wulandari',
-      identifier: 'D010',
-      role: 'dosen',
-    ),
-    User(
-      username: 'admin',
-      password: '456',
-      nama: 'Administrator Universitas',
-      identifier: 'A001',
-      role: 'admin_univ',
-    ),
-    User(
-      username: 'adminilkom',
-      password: '789',
-      nama: 'Administrator Program Studi Ilmu Komputer',
-      identifier: 'AP001',
-      role: 'admin_prodi',
-      kodeProdi: 'ILKOM-01',
-    ),
-    User(
-      username: 'adminbio',
-      password: '789',
-      nama: 'Administrator Program Studi Biologi',
-      identifier: 'AP002',
-      role: 'admin_prodi',
-      kodeProdi: 'BIO-03',
-    ),
-    User(
-      username: 'adminFK',
-      password: '789',
-      nama: 'Administrator Program Studi Ilmu Kedokteran',
-      identifier: 'AP003',
-      role: 'admin_prodi',
-      kodeProdi: 'FK-02',
-    ),
-    User(
-      username: 'admindkv',
-      password: '789',
-      nama: 'Administrator Program Studi DKV',
-      identifier: 'AP004',
-      role: 'admin_prodi',
-      kodeProdi: 'DKV-04',
-    ),
-    User(
-      username: 'rektor',
-      password: '123',
-      nama: 'Prof. Dr. Ir. Rektor, M.Si.',
-      identifier: 'P001',
-      role: 'pimpinan_univ',
-    ),
-    User(
-      username: 'kaprodiilkom',
-      password: '123',
-      nama: 'Kaprodi Ilmu Komputer',
-      identifier: 'PP001',
-      role: 'pimpinan_prodi',
-      kodeProdi: 'ILKOM-01',
-    ),
-    User(
-      username: 'kaprodibio',
-      password: '123',
-      nama: 'Kaprodi Biologi',
-      identifier: 'PP002',
-      role: 'pimpinan_prodi',
-      kodeProdi: 'BIO-03',
-    ),
-    User(
-      username: 'kaprodifk',
-      password: '123',
-      nama: 'Kaprodi Kedokteran',
-      identifier: 'PP003',
-      role: 'pimpinan_prodi',
-      kodeProdi: 'FK-02',
-    ),
-    User(
-      username: 'kaprodidkv',
-      password: '123',
-      nama: 'Kaprodi DKV',
-      identifier: 'PP004',
-      role: 'pimpinan_prodi',
-      kodeProdi: 'DKV-04',
-    ),
-  ];
+      // 3. Dosen
+      final resDosen = await conn.execute('SELECT nidn, nama, kode_prodi FROM dosen');
+      daftarDosen = resDosen.map((row) => Dosen(
+        nidn: row[0] as String,
+        nama: row[1] as String,
+        kodeProdi: row[2] as String,
+      )).toList();
 
-  static List<Dosen> daftarDosen = [
-    Dosen(nidn: 'D001', nama: 'Ir. Arfan', kodeProdi: 'ILKOM-01'),
-    Dosen(nidn: 'D002', nama: 'Dr. Megumi Fushiguro', kodeProdi: 'ILKOM-01'),
-    Dosen(nidn: 'D003', nama: 'Ir. Toji Fushiguro', kodeProdi: 'ILKOM-01'),
-    Dosen(nidn: 'D004', nama: 'dr. yuji', kodeProdi: 'FK-02'),
-    Dosen(nidn: 'D005', nama: 'dr. Frieren', kodeProdi: 'FK-02'),
-    Dosen(nidn: 'D006', nama: 'dr. Lawliet', kodeProdi: 'FK-02'),
-    Dosen(nidn: 'D007', nama: 'Dr. Raynata Bien', kodeProdi: 'BIO-03'),
-    Dosen(nidn: 'D008', nama: 'Dr. izumi', kodeProdi: 'BIO-03'),
-    Dosen(nidn: 'D009', nama: 'Dr. Nanami', kodeProdi: 'BIO-03'),
-    Dosen(nidn: 'D010', nama: 'Dr. Rina Wulandari', kodeProdi: 'DKV-04'),
-  ];
+      // 4. Mahasiswa
+      final resMhs = await conn.execute('SELECT nim, nama_lengkap, jk, kode_prodi, tanggal_lahir, angkatan, is_aktif, dosen_pembimbing_nidn FROM mahasiswa');
+      daftarMahasiswa = resMhs.map((row) => Mahasiswa(
+        nim: row[0] as String,
+        namaLengkap: row[1] as String,
+        jk: row[2] as bool,
+        kodeProdi: row[3] as String,
+        tanggalLahir: row[4] as DateTime,
+        angkatan: row[5] as int,
+        isAktif: row[6] as bool? ?? true,
+        dosenPembimbingNidn: row[7] as String?,
+      )).toList();
 
-  static List<KelasKuliah> daftarKelas = [
-    // ── ILKOM ──────────────────────────────────────────────────────────────
-    KelasKuliah(
-      id: 'IF-01', kodeSemester: '20241', kodeProdi: 'ILKOM-01',
-      kodeMataKuliah: 'ILKOM101', namaKelas: 'A',
-      dosenPengampu: 'Ir. Arfan', kapasitas: 4, jumlahPeserta: 4,
-      jadwal: 'Senin, 08:00 - 10:30',
-      hari: 'Senin', jamMulai: '08:00', jamSelesai: '10:30',
-      kodeRuangan: 'R103', ruangan: 'Lab Komputer',
-    ),
-    KelasKuliah(
-      id: 'IF-02', kodeSemester: '20241', kodeProdi: 'ILKOM-01',
-      kodeMataKuliah: 'ILKOM102', namaKelas: 'B',
-      dosenPengampu: 'Dr. Megumi Fushiguro', kapasitas: 5, jumlahPeserta: 3,
-      jadwal: 'Selasa, 10:00 - 12:30',
-      hari: 'Selasa', jamMulai: '10:00', jamSelesai: '12:30',
-      kodeRuangan: 'R101', ruangan: 'Ruang 101',
-    ),
-    KelasKuliah(
-      id: 'IF-03', kodeSemester: '20241', kodeProdi: 'ILKOM-01',
-      kodeMataKuliah: 'ILKOM103', namaKelas: 'C',
-      dosenPengampu: 'Ir. Toji Fushiguro', kapasitas: 3, jumlahPeserta: 2,
-      jadwal: 'Rabu, 13:00 - 15:30',
-      hari: 'Rabu', jamMulai: '13:00', jamSelesai: '15:30',
-      kodeRuangan: 'R103', ruangan: 'Lab Komputer',
-    ),
-    KelasKuliah(
-      id: 'IF-04', kodeSemester: '20241', kodeProdi: 'ILKOM-01',
-      kodeMataKuliah: 'ILKOM204', namaKelas: 'A',
-      dosenPengampu: 'Ir. Arfan', kapasitas: 6, jumlahPeserta: 2,
-      jadwal: 'Kamis, 08:00 - 10:30',
-      hari: 'Kamis', jamMulai: '08:00', jamSelesai: '10:30',
-      kodeRuangan: 'R103', ruangan: 'Lab Komputer',
-    ),
-    KelasKuliah(
-      id: 'IF-05', kodeSemester: '20241', kodeProdi: 'ILKOM-01',
-      kodeMataKuliah: 'ILKOM305', namaKelas: 'A',
-      dosenPengampu: 'Dr. Megumi Fushiguro', kapasitas: 2, jumlahPeserta: 0,
-      jadwal: 'Jumat, 13:00 - 15:30',
-      hari: 'Jumat', jamMulai: '13:00', jamSelesai: '15:30',
-      kodeRuangan: 'R101', ruangan: 'Ruang 101',
-    ),
+      // 5. Users
+      final resUsers = await conn.execute('SELECT identifier, username, password, nama, role, kode_prodi FROM users');
+      users = resUsers.map((row) => User(
+        identifier: row[0] as String,
+        username: row[1] as String,
+        password: row[2] as String,
+        nama: row[3] as String,
+        role: row[4] as String,
+        kodeProdi: row[5] as String?,
+      )).toList();
 
-    // ── KEDOKTERAN ─────────────────────────────────────────────────────────
-    KelasKuliah(
-      id: 'KD-01', kodeSemester: '20241', kodeProdi: 'FK-02',
-      kodeMataKuliah: 'FK101', namaKelas: 'A',
-      dosenPengampu: 'dr. yuji', kapasitas: 3, jumlahPeserta: 3,
-      jadwal: 'Senin, 08:00 - 11:20',
-      hari: 'Senin', jamMulai: '08:00', jamSelesai: '11:20',
-      kodeRuangan: 'R102', ruangan: 'Ruang 102',
-    ),
-    KelasKuliah(
-      id: 'KD-02', kodeSemester: '20241', kodeProdi: 'FK-02',
-      kodeMataKuliah: 'FK102', namaKelas: 'B',
-      dosenPengampu: 'dr. Frieren', kapasitas: 4, jumlahPeserta: 2,
-      jadwal: 'Selasa, 13:00 - 16:20',
-      hari: 'Selasa', jamMulai: '13:00', jamSelesai: '16:20',
-      kodeRuangan: 'R102', ruangan: 'Ruang 102',
-    ),
-    KelasKuliah(
-      id: 'KD-03', kodeSemester: '20241', kodeProdi: 'FK-02',
-      kodeMataKuliah: 'FK103', namaKelas: 'C',
-      dosenPengampu: 'dr. Lawliet', kapasitas: 5, jumlahPeserta: 1,
-      jadwal: 'Rabu, 08:00 - 10:30',
-      hari: 'Rabu', jamMulai: '08:00', jamSelesai: '10:30',
-      kodeRuangan: 'R102', ruangan: 'Ruang 102',
-    ),
-    KelasKuliah(
-      id: 'KD-04', kodeSemester: '20241', kodeProdi: 'FK-02',
-      kodeMataKuliah: 'FK204', namaKelas: 'A',
-      dosenPengampu: 'dr. yuji', kapasitas: 4, jumlahPeserta: 1,
-      jadwal: 'Kamis, 13:00 - 15:30',
-      hari: 'Kamis', jamMulai: '13:00', jamSelesai: '15:30',
-      kodeRuangan: 'R102', ruangan: 'Ruang 102',
-    ),
+      // 6. KelasKuliah
+      final resKelas = await conn.execute('SELECT id, kode_semester, kode_prodi, kode_mata_kuliah, nama_kelas, kapasitas, jumlah_peserta, dosen_pengampu, jadwal, hari, jam_mulai, jam_selesai, ruangan, kode_ruangan FROM kelas_kuliah');
+      daftarKelas = resKelas.map((row) => KelasKuliah(
+        id: row[0] as String,
+        kodeSemester: row[1] as String,
+        kodeProdi: row[2] as String,
+        kodeMataKuliah: row[3] as String,
+        namaKelas: row[4] as String,
+        kapasitas: row[5] as int,
+        jumlahPeserta: row[6] as int? ?? 0,
+        dosenPengampu: row[7] as String? ?? '',
+        jadwal: row[8] as String? ?? '',
+        hari: row[9] as String? ?? '',
+        jamMulai: row[10] as String? ?? '',
+        jamSelesai: row[11] as String? ?? '',
+        ruangan: row[12] as String? ?? '',
+        kodeRuangan: row[13] as String? ?? '',
+      )).toList();
 
-    // ── BIOLOGI ────────────────────────────────────────────────────────────
-    KelasKuliah(
-      id: 'BI-01', kodeSemester: '20241', kodeProdi: 'BIO-03',
-      kodeMataKuliah: 'BIO101', namaKelas: 'A',
-      dosenPengampu: 'Dr. Raynata Bien', kapasitas: 4, jumlahPeserta: 3,
-      jadwal: 'Senin, 10:00 - 12:30',
-      hari: 'Senin', jamMulai: '10:00', jamSelesai: '12:30',
-      kodeRuangan: 'R101', ruangan: 'Ruang 101',
-    ),
-    KelasKuliah(
-      id: 'BI-02', kodeSemester: '20241', kodeProdi: 'BIO-03',
-      kodeMataKuliah: 'BIO102', namaKelas: 'B',
-      dosenPengampu: 'Dr. izumi', kapasitas: 3, jumlahPeserta: 3,
-      jadwal: 'Selasa, 08:00 - 10:30',
-      hari: 'Selasa', jamMulai: '08:00', jamSelesai: '10:30',
-      kodeRuangan: 'R101', ruangan: 'Ruang 101',
-    ),
-    KelasKuliah(
-      id: 'BI-03', kodeSemester: '20241', kodeProdi: 'BIO-03',
-      kodeMataKuliah: 'BIO103', namaKelas: 'C',
-      dosenPengampu: 'Dr. Nanami', kapasitas: 5, jumlahPeserta: 2,
-      jadwal: 'Rabu, 13:00 - 15:30',
-      hari: 'Rabu', jamMulai: '13:00', jamSelesai: '15:30',
-      kodeRuangan: 'R101', ruangan: 'Ruang 101',
-    ),
-    KelasKuliah(
-      id: 'BI-04', kodeSemester: '20241', kodeProdi: 'BIO-03',
-      kodeMataKuliah: 'BIO204', namaKelas: 'A',
-      dosenPengampu: 'Dr. Raynata Bien', kapasitas: 4, jumlahPeserta: 0,
-      jadwal: 'Jumat, 08:00 - 10:30',
-      hari: 'Jumat', jamMulai: '08:00', jamSelesai: '10:30',
-      kodeRuangan: 'R101', ruangan: 'Ruang 101',
-    ),
+      // 7. Nilai
+      final resNilai = await conn.execute(
+        'SELECT n.nim, n.id_kelas_kuliah, n.kode_mata_kuliah, n.nama_mata_kuliah, '
+        'n.sks_mata_kuliah, n.nilai_angka, n.nilai_huruf, COALESCE(k.status_krs, \'draft\') '
+        'FROM nilai n '
+        'LEFT JOIN krs k ON n.nim = k.nim AND n.id_kelas_kuliah = k.id_kelas_kuliah'
+      );
+      daftarNilai = resNilai.map((row) => Nilai(
+        nim: row[0] as String,
+        idKelasKuliah: row[1] as String,
+        kodeMataKuliah: row[2] as String,
+        namaMataKuliah: row[3] as String,
+        sksMataKuliah: row[4] as int,
+        nilaiAngka: row[5] != null ? (row[5] as int).toDouble() : null,
+        nilaiHuruf: row[6] as String?,
+        statusKrs: row[7] as String? ?? 'draft',
+      )).toList();
 
-    // ── DKV ────────────────────────────────────────────────────────────────
-    KelasKuliah(
-      id: 'DKV-01', kodeSemester: '20241', kodeProdi: 'DKV-04',
-      kodeMataKuliah: 'DKV101', namaKelas: 'A',
-      dosenPengampu: 'Dr. Rina Wulandari', kapasitas: 3, jumlahPeserta: 1,
-      jadwal: 'Senin, 13:00 - 15:30',
-      hari: 'Senin', jamMulai: '13:00', jamSelesai: '15:30',
-      kodeRuangan: 'R102', ruangan: 'Ruang 102',
-    ),
-    KelasKuliah(
-      id: 'DKV-02', kodeSemester: '20241', kodeProdi: 'DKV-04',
-      kodeMataKuliah: 'DKV102', namaKelas: 'B',
-      dosenPengampu: 'Dr. Rina Wulandari', kapasitas: 2, jumlahPeserta: 0,
-      jadwal: 'Kamis, 10:00 - 12:30',
-      hari: 'Kamis', jamMulai: '10:00', jamSelesai: '12:30',
-      kodeRuangan: 'R102', ruangan: 'Ruang 102',
-    ),
-  ];
+      // 8. Ruangan
+      final resRuangan = await conn.execute('SELECT kode_ruangan, nama_ruangan, kapasitas_ruangan, lokasi FROM ruangan');
+      daftarRuangan = resRuangan.map((row) => Ruangan(
+        kodeRuangan: row[0] as String,
+        namaRuangan: row[1] as String,
+        kapasitasRuangan: row[2] as int,
+        lokasi: row[3] as String? ?? '',
+      )).toList();
 
-  static List<Nilai> daftarNilai = [
-    Nilai(
-      nim: '2024010001',
-      idKelasKuliah: 'IF-01',
-      kodeMataKuliah: 'ILKOM101',
-      namaMataKuliah: 'Pemrograman Dasar',
-      sksMataKuliah: 3,
-      nilaiAngka: 88,
-      nilaiHuruf: 'A',
-    ),
-    Nilai(
-      nim: '2024010001',
-      idKelasKuliah: 'IF-02',
-      kodeMataKuliah: 'ILKOM102',
-      namaMataKuliah: 'Struktur Data',
-      sksMataKuliah: 3,
-      nilaiAngka: 76,
-      nilaiHuruf: 'B',
-    ),
-    Nilai(
-      nim: '2024010001',
-      idKelasKuliah: 'IF-04',
-      kodeMataKuliah: 'ILKOM204',
-      namaMataKuliah: 'Pemrograman Mobile',
-      sksMataKuliah: 3,
-    ),
-    Nilai(
-      nim: '2024010004',
-      idKelasKuliah: 'IF-01',
-      kodeMataKuliah: 'ILKOM101',
-      namaMataKuliah: 'Pemrograman Dasar',
-      sksMataKuliah: 3,
-      nilaiAngka: 91,
-      nilaiHuruf: 'A',
-    ),
-    Nilai(
-      nim: '2024010004',
-      idKelasKuliah: 'IF-02',
-      kodeMataKuliah: 'ILKOM102',
-      namaMataKuliah: 'Struktur Data',
-      sksMataKuliah: 3,
-    ),
-    Nilai(
-      nim: '2024010004',
-      idKelasKuliah: 'IF-03',
-      kodeMataKuliah: 'ILKOM103',
-      namaMataKuliah: 'Basis Data',
-      sksMataKuliah: 3,
-      nilaiAngka: 68,
-      nilaiHuruf: 'C',
-    ),
-    Nilai(
-      nim: '2024010005',
-      idKelasKuliah: 'IF-01',
-      kodeMataKuliah: 'ILKOM101',
-      namaMataKuliah: 'Pemrograman Dasar',
-      sksMataKuliah: 3,
-      nilaiAngka: 73,
-      nilaiHuruf: 'C',
-    ),
-    Nilai(
-      nim: '2024010005',
-      idKelasKuliah: 'IF-03',
-      kodeMataKuliah: 'ILKOM103',
-      namaMataKuliah: 'Basis Data',
-      sksMataKuliah: 3,
-    ),
-    Nilai(
-      nim: '2024010002',
-      idKelasKuliah: 'KD-01',
-      kodeMataKuliah: 'FK101',
-      namaMataKuliah: 'Anatomi',
-      sksMataKuliah: 4,
-      nilaiAngka: 82,
-      nilaiHuruf: 'B',
-    ),
-    Nilai(
-      nim: '2024010002',
-      idKelasKuliah: 'KD-02',
-      kodeMataKuliah: 'FK102',
-      namaMataKuliah: 'Fisiologi',
-      sksMataKuliah: 4,
-    ),
-    Nilai(
-      nim: '2024010002',
-      idKelasKuliah: 'KD-04',
-      kodeMataKuliah: 'FK204',
-      namaMataKuliah: 'Farmakologi Dasar',
-      sksMataKuliah: 3,
-      nilaiAngka: 90,
-      nilaiHuruf: 'A',
-    ),
-    Nilai(
-      nim: '2024010006',
-      idKelasKuliah: 'KD-01',
-      kodeMataKuliah: 'FK101',
-      namaMataKuliah: 'Anatomi',
-      sksMataKuliah: 4,
-      nilaiAngka: 95,
-      nilaiHuruf: 'A',
-    ),
-    Nilai(
-      nim: '2024010006',
-      idKelasKuliah: 'KD-02',
-      kodeMataKuliah: 'FK102',
-      namaMataKuliah: 'Fisiologi',
-      sksMataKuliah: 4,
-      nilaiAngka: 79,
-      nilaiHuruf: 'B',
-    ),
-    Nilai(
-      nim: '2024010007',
-      idKelasKuliah: 'KD-01',
-      kodeMataKuliah: 'FK101',
-      namaMataKuliah: 'Anatomi',
-      sksMataKuliah: 4,
-    ),
-    Nilai(
-      nim: '2024010007',
-      idKelasKuliah: 'KD-03',
-      kodeMataKuliah: 'FK103',
-      namaMataKuliah: 'Histologi',
-      sksMataKuliah: 3,
-      nilaiAngka: 62,
-      nilaiHuruf: 'D',
-    ),
-    Nilai(
-      nim: '2024010003',
-      idKelasKuliah: 'BI-01',
-      kodeMataKuliah: 'BIO101',
-      namaMataKuliah: 'Biologi Sel',
-      sksMataKuliah: 3,
-      nilaiAngka: 85,
-      nilaiHuruf: 'A',
-    ),
-    Nilai(
-      nim: '2024010003',
-      idKelasKuliah: 'BI-02',
-      kodeMataKuliah: 'BIO102',
-      namaMataKuliah: 'Genetika',
-      sksMataKuliah: 3,
-      nilaiAngka: 78,
-      nilaiHuruf: 'B',
-    ),
-    Nilai(
-      nim: '2024010008',
-      idKelasKuliah: 'BI-01',
-      kodeMataKuliah: 'BIO101',
-      namaMataKuliah: 'Biologi Sel',
-      sksMataKuliah: 3,
-    ),
-    Nilai(
-      nim: '2024010008',
-      idKelasKuliah: 'BI-02',
-      kodeMataKuliah: 'BIO102',
-      namaMataKuliah: 'Genetika',
-      sksMataKuliah: 3,
-      nilaiAngka: 93,
-      nilaiHuruf: 'A',
-    ),
-    Nilai(
-      nim: '2024010009',
-      idKelasKuliah: 'BI-02',
-      kodeMataKuliah: 'BIO102',
-      namaMataKuliah: 'Genetika',
-      sksMataKuliah: 3,
-      nilaiAngka: 55,
-      nilaiHuruf: 'D',
-    ),
-    Nilai(
-      nim: '2024010009',
-      idKelasKuliah: 'BI-03',
-      kodeMataKuliah: 'BIO103',
-      namaMataKuliah: 'Ekologi',
-      sksMataKuliah: 3,
-    ),
-    Nilai(
-      nim: '2024010010',
-      idKelasKuliah: 'DKV-01',
-      kodeMataKuliah: 'DKV101',
-      namaMataKuliah: 'Rupa Dasar',
-      sksMataKuliah: 3,
-      nilaiAngka: 87,
-      nilaiHuruf: 'A',
-    ),
-  ];
+      // 9. DosenPengajar
+      final resDp = await conn.execute('SELECT id, id_kelas, nidn_dosen, peran_mengajar FROM dosen_pengajar');
+      daftarDosenPengajar = resDp.map((row) => DosenPengajar(
+        id: row[0] as String,
+        idKelas: row[1] as String,
+        nidnDosen: row[2] as String,
+        peranMengajar: row[3] as String,
+      )).toList();
 
-  static List<Ruangan> daftarRuangan = [
-    Ruangan(kodeRuangan: 'R101', namaRuangan: 'Ruang 101', kapasitasRuangan: 40, lokasi: 'Gedung A'),
-    Ruangan(kodeRuangan: 'R102', namaRuangan: 'Ruang 102', kapasitasRuangan: 50, lokasi: 'Gedung A'),
-    Ruangan(kodeRuangan: 'R103', namaRuangan: 'Lab Komputer', kapasitasRuangan: 30, lokasi: 'Gedung B'),
-  ];
+      // 10. JadwalKrs
+      final resJkrs = await conn.execute('SELECT tahun_akademik, semester, status, tanggal_mulai, tanggal_selesai FROM jadwal_krs');
+      daftarJadwalKrs = resJkrs.map((row) => JadwalKrs(
+        tahunAkademik: row[0] as String,
+        semester: row[1] as String,
+        status: row[2] as String,
+        tanggalMulai: row[3] as DateTime,
+        tanggalSelesai: row[4] as DateTime,
+      )).toList();
 
-  static List<DosenPengajar> daftarDosenPengajar = [
-    DosenPengajar(id: 'DP-01', idKelas: 'IF-01', nidnDosen: 'D001', peranMengajar: 'Dosen Utama'),
-    DosenPengajar(id: 'DP-02', idKelas: 'IF-02', nidnDosen: 'D002', peranMengajar: 'Dosen Utama'),
-    DosenPengajar(id: 'DP-03', idKelas: 'IF-03', nidnDosen: 'D003', peranMengajar: 'Dosen Utama'),
-    DosenPengajar(id: 'DP-04', idKelas: 'IF-04', nidnDosen: 'D001', peranMengajar: 'Dosen Utama'),
-    DosenPengajar(id: 'DP-05', idKelas: 'IF-05', nidnDosen: 'D002', peranMengajar: 'Dosen Utama'),
-    DosenPengajar(id: 'DP-06', idKelas: 'KD-01', nidnDosen: 'D004', peranMengajar: 'Dosen Utama'),
-    DosenPengajar(id: 'DP-07', idKelas: 'KD-02', nidnDosen: 'D005', peranMengajar: 'Dosen Utama'),
-    DosenPengajar(id: 'DP-08', idKelas: 'KD-03', nidnDosen: 'D006', peranMengajar: 'Dosen Utama'),
-    DosenPengajar(id: 'DP-09', idKelas: 'KD-04', nidnDosen: 'D004', peranMengajar: 'Dosen Utama'),
-    DosenPengajar(id: 'DP-10', idKelas: 'BI-01', nidnDosen: 'D007', peranMengajar: 'Dosen Utama'),
-    DosenPengajar(id: 'DP-11', idKelas: 'BI-02', nidnDosen: 'D008', peranMengajar: 'Dosen Utama'),
-    DosenPengajar(id: 'DP-12', idKelas: 'BI-03', nidnDosen: 'D009', peranMengajar: 'Dosen Utama'),
-    DosenPengajar(id: 'DP-13', idKelas: 'BI-04', nidnDosen: 'D007', peranMengajar: 'Dosen Utama'),
-    DosenPengajar(id: 'DP-14', idKelas: 'DKV-01', nidnDosen: 'D010', peranMengajar: 'Dosen Utama'),
-    DosenPengajar(id: 'DP-15', idKelas: 'DKV-02', nidnDosen: 'D010', peranMengajar: 'Dosen Utama'),
-  ];
+      // 11. JadwalKuliah
+      final resJkul = await conn.execute('SELECT id, id_kelas_kuliah, hari, jam_mulai, jam_selesai, kode_ruangan FROM jadwal_kuliah');
+      daftarJadwalKuliah = resJkul.map((row) => JadwalKuliah(
+        id: row[0] as String,
+        idKelasKuliah: row[1] as String,
+        hari: row[2] as String,
+        jamMulai: row[3] as String,
+        jamSelesai: row[4] as String,
+        kodeRuangan: row[5] as String,
+      )).toList();
 
-  static List<JadwalKrs> daftarJadwalKrs = [
-    JadwalKrs(
-      tahunAkademik: '2024/2025',
-      semester: 'Ganjil',
-      status: 'Aktif',
-      tanggalMulai: DateTime(2026, 6, 1),
-      tanggalSelesai: DateTime(2026, 6, 30),
-    ),
-  ];
+      // 12. KRS
+      final resKrs = await conn.execute('SELECT nim, id_kelas_kuliah, status_krs FROM krs');
+      daftarKrs = resKrs.map((row) => KRS(
+        nim: row[0] as String,
+        idKelasKuliah: row[1] as String,
+        statusKrs: row[2] as String? ?? 'draft',
+      )).toList();
 
-  static List<JadwalKuliah> daftarJadwalKuliah = [
-    JadwalKuliah(id: 'JK-01', idKelasKuliah: 'IF-01', hari: 'Senin', jamMulai: '08:00', jamSelesai: '10:30', kodeRuangan: 'R103'),
-    JadwalKuliah(id: 'JK-02', idKelasKuliah: 'IF-02', hari: 'Selasa', jamMulai: '10:00', jamSelesai: '12:30', kodeRuangan: 'R101'),
-    JadwalKuliah(id: 'JK-03', idKelasKuliah: 'IF-03', hari: 'Rabu', jamMulai: '13:00', jamSelesai: '15:30', kodeRuangan: 'R103'),
-    JadwalKuliah(id: 'JK-04', idKelasKuliah: 'IF-04', hari: 'Kamis', jamMulai: '08:00', jamSelesai: '10:30', kodeRuangan: 'R103'),
-    JadwalKuliah(id: 'JK-05', idKelasKuliah: 'IF-05', hari: 'Jumat', jamMulai: '13:00', jamSelesai: '15:30', kodeRuangan: 'R101'),
-    JadwalKuliah(id: 'JK-06', idKelasKuliah: 'KD-01', hari: 'Senin', jamMulai: '08:00', jamSelesai: '11:20', kodeRuangan: 'R102'),
-    JadwalKuliah(id: 'JK-07', idKelasKuliah: 'KD-02', hari: 'Selasa', jamMulai: '13:00', jamSelesai: '16:20', kodeRuangan: 'R102'),
-    JadwalKuliah(id: 'JK-08', idKelasKuliah: 'KD-03', hari: 'Rabu', jamMulai: '08:00', jamSelesai: '10:30', kodeRuangan: 'R102'),
-    JadwalKuliah(id: 'JK-09', idKelasKuliah: 'KD-04', hari: 'Kamis', jamMulai: '13:00', jamSelesai: '15:30', kodeRuangan: 'R102'),
-    JadwalKuliah(id: 'JK-10', idKelasKuliah: 'BI-01', hari: 'Senin', jamMulai: '10:00', jamSelesai: '12:30', kodeRuangan: 'R101'),
-    JadwalKuliah(id: 'JK-11', idKelasKuliah: 'BI-02', hari: 'Selasa', jamMulai: '08:00', jamSelesai: '10:30', kodeRuangan: 'R101'),
-    JadwalKuliah(id: 'JK-12', idKelasKuliah: 'BI-03', hari: 'Rabu', jamMulai: '13:00', jamSelesai: '15:30', kodeRuangan: 'R101'),
-    JadwalKuliah(id: 'JK-13', idKelasKuliah: 'BI-04', hari: 'Jumat', jamMulai: '08:00', jamSelesai: '10:30', kodeRuangan: 'R101'),
-    JadwalKuliah(id: 'JK-14', idKelasKuliah: 'DKV-01', hari: 'Senin', jamMulai: '13:00', jamSelesai: '15:30', kodeRuangan: 'R102'),
-    JadwalKuliah(id: 'JK-15', idKelasKuliah: 'DKV-02', hari: 'Kamis', jamMulai: '10:00', jamSelesai: '12:30', kodeRuangan: 'R102'),
-  ];
+      // 13. PertemuanKuliah
+      final resPertemuan = await conn.execute('SELECT id, nomor_pertemuan, tanggal, id_kelas_kuliah, status_sesi, catatan, tahun_akademik, semester, kode_ruangan, nama_ruangan, hari, jam_mulai, jam_selesai FROM pertemuan_kuliah');
+      daftarPertemuanKuliah = resPertemuan.map((row) => PertemuanKuliah(
+        id: row[0] as String,
+        nomorPertemuan: row[1] as int,
+        tanggal: row[2] as DateTime,
+        idKelasKuliah: row[3] as String,
+        statusSesi: row[4] as String? ?? 'tutup',
+        catatan: row[5] as String?,
+        tahunAkademik: row[6] as String? ?? '2024/2025',
+        semester: row[7] as String? ?? 'Ganjil',
+        kodeRuangan: row[8] as String? ?? '',
+        namaRuangan: row[9] as String? ?? '',
+        hari: row[10] as String? ?? '',
+        jamMulai: row[11] as String? ?? '',
+        jamSelesai: row[12] as String? ?? '',
+      )).toList();
 
-  static List<KRS> daftarKrs = [
-    KRS(nim: '2024010001', idKelasKuliah: 'IF-01', statusKrs: 'valid'),
-    KRS(nim: '2024010001', idKelasKuliah: 'IF-02', statusKrs: 'valid'),
-    KRS(nim: '2024010001', idKelasKuliah: 'IF-04', statusKrs: 'pending'),
-    KRS(nim: '2024010004', idKelasKuliah: 'IF-01', statusKrs: 'valid'),
-    KRS(nim: '2024010004', idKelasKuliah: 'IF-02', statusKrs: 'pending'),
-    KRS(nim: '2024010004', idKelasKuliah: 'IF-03', statusKrs: 'valid'),
-    KRS(nim: '2024010005', idKelasKuliah: 'IF-01', statusKrs: 'valid'),
-    KRS(nim: '2024010005', idKelasKuliah: 'IF-03', statusKrs: 'pending'),
-    KRS(nim: '2024010002', idKelasKuliah: 'KD-01', statusKrs: 'valid'),
-    KRS(nim: '2024010002', idKelasKuliah: 'KD-02', statusKrs: 'pending'),
-    KRS(nim: '2024010002', idKelasKuliah: 'KD-04', statusKrs: 'valid'),
-    KRS(nim: '2024010006', idKelasKuliah: 'KD-01', statusKrs: 'valid'),
-    KRS(nim: '2024010006', idKelasKuliah: 'KD-02', statusKrs: 'valid'),
-    KRS(nim: '2024010007', idKelasKuliah: 'KD-01', statusKrs: 'pending'),
-    KRS(nim: '2024010007', idKelasKuliah: 'KD-03', statusKrs: 'valid'),
-    KRS(nim: '2024010003', idKelasKuliah: 'BI-01', statusKrs: 'valid'),
-    KRS(nim: '2024010003', idKelasKuliah: 'BI-02', statusKrs: 'valid'),
-    KRS(nim: '2024010008', idKelasKuliah: 'BI-01', statusKrs: 'pending'),
-    KRS(nim: '2024010008', idKelasKuliah: 'BI-02', statusKrs: 'valid'),
-    KRS(nim: '2024010009', idKelasKuliah: 'BI-02', statusKrs: 'valid'),
-    KRS(nim: '2024010009', idKelasKuliah: 'BI-03', statusKrs: 'pending'),
-    KRS(nim: '2024010010', idKelasKuliah: 'DKV-01', statusKrs: 'valid'),
-  ];
+      // 14. PresensiMahasiswa
+      final resPm = await conn.execute('SELECT id, id_pertemuan, nim, status, waktu_presensi, catatan FROM presensi_mahasiswa');
+      daftarPresensiMahasiswa = resPm.map((row) => PresensiMahasiswa(
+        id: row[0] as String,
+        idPertemuan: row[1] as String,
+        nim: row[2] as String,
+        status: row[3] as String,
+        waktuPresensi: row[4] as DateTime?,
+        catatan: row[5] as String?,
+      )).toList();
 
-  static List<PertemuanKuliah> daftarPertemuanKuliah = [
-    PertemuanKuliah(id: 'P-01', nomorPertemuan: 1, tanggal: DateTime(2026, 6, 8), idKelasKuliah: 'IF-01', statusSesi: 'tutup', catatan: 'Pengenalan Pemrograman'),
-    PertemuanKuliah(id: 'P-02', nomorPertemuan: 2, tanggal: DateTime(2026, 6, 15), idKelasKuliah: 'IF-01', statusSesi: 'aktif', catatan: 'Variable dan Tipe Data'),
-    PertemuanKuliah(id: 'P-03', nomorPertemuan: 1, tanggal: DateTime(2026, 6, 9), idKelasKuliah: 'IF-02', statusSesi: 'tutup', catatan: 'Pengenalan Pointer'),
-    PertemuanKuliah(id: 'P-04', nomorPertemuan: 1, tanggal: DateTime(2026, 6, 8), idKelasKuliah: 'KD-01', statusSesi: 'tutup', catatan: 'Terminologi Anatomi'),
-    PertemuanKuliah(id: 'P-05', nomorPertemuan: 2, tanggal: DateTime(2026, 6, 15), idKelasKuliah: 'KD-01', statusSesi: 'aktif', catatan: 'Sistem Skeletal'),
-    PertemuanKuliah(id: 'P-06', nomorPertemuan: 1, tanggal: DateTime(2026, 6, 8), idKelasKuliah: 'BI-01', statusSesi: 'tutup', catatan: 'Pengenalan Sel'),
-  ];
+      // 15. PresensiDosen
+      final resPd = await conn.execute('SELECT id, id_pertemuan, nidn, status, waktu_presensi FROM presensi_dosen');
+      daftarPresensiDosen = resPd.map((row) => PresensiDosen(
+        id: row[0] as String,
+        idPertemuan: row[1] as String,
+        nidn: row[2] as String,
+        status: row[3] as String,
+        waktuPresensi: row[4] as DateTime?,
+      )).toList();
+      // 16. Materi Kuliah
+      final resMateri = await conn.execute('SELECT id, id_kelas_kuliah, minggu, judul_bab, deskripsi_bab, created_at FROM materi_kuliah');
+      
+      // 17. Materi File
+      final resFiles = await conn.execute('SELECT id, id_materi, nama, tipe, url FROM materi_file');
+      
+      // Map files by materi_id
+      final Map<String, List<MateriFile>> filesByMateri = {};
+      for (final row in resFiles) {
+        final file = MateriFile(
+          id: row[0] as int,
+          idMateri: row[1] as String,
+          nama: row[2] as String,
+          tipe: row[3] as String,
+          url: row[4] as String,
+        );
+        if (!filesByMateri.containsKey(file.idMateri)) {
+          filesByMateri[file.idMateri!] = [];
+        }
+        filesByMateri[file.idMateri!]!.add(file);
+      }
 
-  static List<PresensiMahasiswa> daftarPresensiMahasiswa = [
-    PresensiMahasiswa(id: 'PM-01', idPertemuan: 'P-01', nim: '2024010001', status: 'Hadir', waktuPresensi: DateTime(2026, 6, 8, 8, 5), catatan: 'Hadir Tepat Waktu'),
-    PresensiMahasiswa(id: 'PM-02', idPertemuan: 'P-01', nim: '2024010004', status: 'Hadir', waktuPresensi: DateTime(2026, 6, 8, 8, 10)),
-    PresensiMahasiswa(id: 'PM-03', idPertemuan: 'P-01', nim: '2024010005', status: 'Izin', waktuPresensi: DateTime(2026, 6, 8, 8, 0), catatan: 'Ada acara keluarga'),
-    PresensiMahasiswa(id: 'PM-04', idPertemuan: 'P-02', nim: '2024010001', status: 'Hadir', waktuPresensi: DateTime(2026, 6, 15, 8, 7)),
-    PresensiMahasiswa(id: 'PM-05', idPertemuan: 'P-03', nim: '2024010001', status: 'Hadir', waktuPresensi: DateTime(2026, 6, 9, 10, 2)),
-    PresensiMahasiswa(id: 'PM-06', idPertemuan: 'P-03', nim: '2024010004', status: 'Sakit', waktuPresensi: null, catatan: 'Surat sakit terlampir'),
-    PresensiMahasiswa(id: 'PM-07', idPertemuan: 'P-04', nim: '2024010002', status: 'Hadir', waktuPresensi: DateTime(2026, 6, 8, 8, 3)),
-    PresensiMahasiswa(id: 'PM-08', idPertemuan: 'P-04', nim: '2024010006', status: 'Hadir', waktuPresensi: DateTime(2026, 6, 8, 8, 5)),
-    PresensiMahasiswa(id: 'PM-09', idPertemuan: 'P-04', nim: '2024010007', status: 'Alfa', waktuPresensi: null),
-    PresensiMahasiswa(id: 'PM-10', idPertemuan: 'P-05', nim: '2024010002', status: 'Hadir', waktuPresensi: DateTime(2026, 6, 15, 8, 2)),
-    PresensiMahasiswa(id: 'PM-11', idPertemuan: 'P-06', nim: '2024010003', status: 'Hadir', waktuPresensi: DateTime(2026, 6, 8, 10, 4)),
-    PresensiMahasiswa(id: 'PM-12', idPertemuan: 'P-06', nim: '2024010008', status: 'Hadir', waktuPresensi: DateTime(2026, 6, 8, 10, 12)),
-  ];
+      final List<MateriKuliah> loadedMateri = resMateri.map((row) {
+        final id = row[0] as String;
+        return MateriKuliah(
+          id: id,
+          idKelasKuliah: row[1] as String,
+          minggu: row[2] as int,
+          judulBab: row[3] as String,
+          deskripsiBab: row[4] as String? ?? '',
+          createdAt: row[5] as DateTime? ?? DateTime.now(),
+          files: filesByMateri[id] ?? [],
+        );
+      }).toList();
 
-  static List<PresensiDosen> daftarPresensiDosen = [
-    PresensiDosen(id: 'PD-01', idPertemuan: 'P-01', nidn: 'D001', status: 'Hadir', waktuPresensi: DateTime(2026, 6, 8, 7, 55)),
-    PresensiDosen(id: 'PD-02', idPertemuan: 'P-02', nidn: 'D001', status: 'Hadir', waktuPresensi: DateTime(2026, 6, 15, 7, 58)),
-    PresensiDosen(id: 'PD-03', idPertemuan: 'P-03', nidn: 'D002', status: 'Hadir', waktuPresensi: DateTime(2026, 6, 9, 9, 50)),
-    PresensiDosen(id: 'PD-04', idPertemuan: 'P-04', nidn: 'D004', status: 'Hadir', waktuPresensi: DateTime(2026, 6, 8, 7, 50)),
-    PresensiDosen(id: 'PD-05', idPertemuan: 'P-05', nidn: 'D004', status: 'Belum Presensi'),
-    PresensiDosen(id: 'PD-06', idPertemuan: 'P-06', nidn: 'D007', status: 'Hadir', waktuPresensi: DateTime(2026, 6, 8, 9, 55)),
-  ];
+      // 18. Rencana Materi
+      final resRencana = await conn.execute('SELECT id, id_kelas_kuliah, minggu, judul_bab, sub_bab, sudah_dibahas FROM rencana_materi');
+      final List<RencanaMateri> loadedRencana = resRencana.map((row) => RencanaMateri(
+        id: row[0] as int,
+        idKelasKuliah: row[1] as String,
+        minggu: row[2] as int,
+        judulBab: row[3] as String,
+        subBab: row[4] as String? ?? '',
+        sudahDibahas: row[5] as bool? ?? false,
+      )).toList();
+
+      // Populate MateriData
+      MateriData.daftarMateri.clear();
+      MateriData.daftarMateri.addAll(loadedMateri);
+      
+      MateriData.rencanaPerKelas.clear();
+      for (final r in loadedRencana) {
+        if (!MateriData.rencanaPerKelas.containsKey(r.idKelasKuliah)) {
+          MateriData.rencanaPerKelas[r.idKelasKuliah!] = [];
+        }
+        MateriData.rencanaPerKelas[r.idKelasKuliah!]!.add(r);
+      }
+    } finally {
+      await conn.close();
+    }
+  }
+
+  static Future<void> saveKelas(KelasKuliah k) async {
+    final conn = await DBConnection.connect();
+    try {
+      await conn.execute(
+        Sql.named('INSERT INTO kelas_kuliah (id, kode_semester, kode_prodi, kode_mata_kuliah, '
+            'nama_kelas, kapasitas, jumlah_peserta, dosen_pengampu, jadwal, hari, jam_mulai, '
+            'jam_selesai, ruangan, kode_ruangan) VALUES (@id, @sem, @prodi, @mk, @nama, @kap, '
+            '@peserta, @dosen, @jadwal, @hari, @mulai, @selesai, @ruangan, @kruangan)'),
+        parameters: {
+          'id': k.id,
+          'sem': k.kodeSemester,
+          'prodi': k.kodeProdi,
+          'mk': k.kodeMataKuliah,
+          'nama': k.namaKelas,
+          'kap': k.kapasitas,
+          'peserta': k.jumlahPeserta,
+          'dosen': k.dosenPengampu,
+          'jadwal': k.jadwal,
+          'hari': k.hari,
+          'mulai': k.jamMulai,
+          'selesai': k.jamSelesai,
+          'ruangan': k.ruangan,
+          'kruangan': k.kodeRuangan,
+        },
+      );
+    } finally {
+      await conn.close();
+    }
+  }
+
+  static Future<void> deleteKelas(String id) async {
+    final conn = await DBConnection.connect();
+    try {
+      await conn.execute(
+        Sql.named('DELETE FROM kelas_kuliah WHERE id = @id'),
+        parameters: {'id': id},
+      );
+    } finally {
+      await conn.close();
+    }
+  }
+
+  static Future<void> updateKelas(String oldId, KelasKuliah k) async {
+    final conn = await DBConnection.connect();
+    try {
+      await conn.execute(
+        Sql.named('UPDATE kelas_kuliah SET id = @id, kode_semester = @sem, kode_prodi = @prodi, '
+            'kode_mata_kuliah = @mk, nama_kelas = @nama, kapasitas = @kap, jumlah_peserta = @peserta, '
+            'dosen_pengampu = @dosen, jadwal = @jadwal, hari = @hari, jam_mulai = @mulai, '
+            'jam_selesai = @selesai, ruangan = @ruangan, kode_ruangan = @kruangan WHERE id = @oldId'),
+        parameters: {
+          'oldId': oldId,
+          'id': k.id,
+          'sem': k.kodeSemester,
+          'prodi': k.kodeProdi,
+          'mk': k.kodeMataKuliah,
+          'nama': k.namaKelas,
+          'kap': k.kapasitas,
+          'peserta': k.jumlahPeserta,
+          'dosen': k.dosenPengampu,
+          'jadwal': k.jadwal,
+          'hari': k.hari,
+          'mulai': k.jamMulai,
+          'selesai': k.jamSelesai,
+          'ruangan': k.ruangan,
+          'kruangan': k.kodeRuangan,
+        },
+      );
+    } finally {
+      await conn.close();
+    }
+  }
+
+  static Future<void> saveDosenPengajar(DosenPengajar dp) async {
+    final conn = await DBConnection.connect();
+    try {
+      await conn.execute(
+        Sql.named('INSERT INTO dosen_pengajar (id, id_kelas, nidn_dosen, peran_mengajar) '
+            'VALUES (@id, @idKelas, @nidn, @peran)'),
+        parameters: {
+          'id': dp.id,
+          'idKelas': dp.idKelas,
+          'nidn': dp.nidnDosen,
+          'peran': dp.peranMengajar,
+        },
+      );
+    } finally {
+      await conn.close();
+    }
+  }
+
+  static Future<void> deleteDosenPengajar(String id) async {
+    final conn = await DBConnection.connect();
+    try {
+      await conn.execute(
+        Sql.named('DELETE FROM dosen_pengajar WHERE id = @id'),
+        parameters: {'id': id},
+      );
+    } finally {
+      await conn.close();
+    }
+  }
+
+  static Future<void> deleteDosenPengajarByKelas(String idKelas) async {
+    final conn = await DBConnection.connect();
+    try {
+      await conn.execute(
+        Sql.named('DELETE FROM dosen_pengajar WHERE id_kelas = @id'),
+        parameters: {'id': idKelas},
+      );
+    } finally {
+      await conn.close();
+    }
+  }
+
+  static Future<void> saveNilai(Nilai n) async {
+    final conn = await DBConnection.connect();
+    try {
+      await conn.execute(
+        Sql.named('INSERT INTO nilai (nim, id_kelas_kuliah, kode_mata_kuliah, nama_mata_kuliah, '
+            'sks_mata_kuliah, nilai_angka, nilai_huruf) VALUES (@nim, @idKelas, @mk, '
+            '@nama, @sks, @angka, @huruf)'),
+        parameters: {
+          'nim': n.nim,
+          'idKelas': n.idKelasKuliah,
+          'mk': n.kodeMataKuliah,
+          'nama': n.namaMataKuliah,
+          'sks': n.sksMataKuliah,
+          'angka': n.nilaiAngka?.toInt(),
+          'huruf': n.nilaiHuruf,
+        },
+      );
+      final resKrs = await conn.execute(
+        Sql.named('SELECT 1 FROM krs WHERE nim = @nim AND id_kelas_kuliah = @idKelas'),
+        parameters: {'nim': n.nim, 'idKelas': n.idKelasKuliah},
+      );
+      if (resKrs.isEmpty) {
+        await conn.execute(
+          Sql.named('INSERT INTO krs (nim, id_kelas_kuliah, status_krs) VALUES (@nim, @idKelas, @status)'),
+          parameters: {
+            'nim': n.nim,
+            'idKelas': n.idKelasKuliah,
+            'status': n.statusKrs,
+          },
+        );
+      } else {
+        await conn.execute(
+          Sql.named('UPDATE krs SET status_krs = @status WHERE nim = @nim AND id_kelas_kuliah = @idKelas'),
+          parameters: {
+            'nim': n.nim,
+            'idKelas': n.idKelasKuliah,
+            'status': n.statusKrs,
+          },
+        );
+      }
+    } finally {
+      await conn.close();
+    }
+  }
+
+  static Future<void> updateNilai(Nilai n) async {
+    final conn = await DBConnection.connect();
+    try {
+      await conn.execute(
+        Sql.named('UPDATE nilai SET nilai_angka = @angka, nilai_huruf = @huruf '
+            'WHERE nim = @nim AND id_kelas_kuliah = @idKelas'),
+        parameters: {
+          'nim': n.nim,
+          'idKelas': n.idKelasKuliah,
+          'angka': n.nilaiAngka?.toInt(),
+          'huruf': n.nilaiHuruf,
+        },
+      );
+      final resKrs = await conn.execute(
+        Sql.named('SELECT 1 FROM krs WHERE nim = @nim AND id_kelas_kuliah = @idKelas'),
+        parameters: {'nim': n.nim, 'idKelas': n.idKelasKuliah},
+      );
+      if (resKrs.isEmpty) {
+        await conn.execute(
+          Sql.named('INSERT INTO krs (nim, id_kelas_kuliah, status_krs) VALUES (@nim, @idKelas, @status)'),
+          parameters: {
+            'nim': n.nim,
+            'idKelas': n.idKelasKuliah,
+            'status': n.statusKrs,
+          },
+        );
+      } else {
+        await conn.execute(
+          Sql.named('UPDATE krs SET status_krs = @status WHERE nim = @nim AND id_kelas_kuliah = @idKelas'),
+          parameters: {
+            'nim': n.nim,
+            'idKelas': n.idKelasKuliah,
+            'status': n.statusKrs,
+          },
+        );
+      }
+    } finally {
+      await conn.close();
+    }
+  }
+
+  static Future<void> deleteNilai(String nim, String idKelas) async {
+    final conn = await DBConnection.connect();
+    try {
+      await conn.execute(
+        Sql.named('DELETE FROM nilai WHERE nim = @nim AND id_kelas_kuliah = @idKelas'),
+        parameters: {'nim': nim, 'idKelas': idKelas},
+      );
+      await conn.execute(
+        Sql.named('DELETE FROM krs WHERE nim = @nim AND id_kelas_kuliah = @idKelas'),
+        parameters: {'nim': nim, 'idKelas': idKelas},
+      );
+    } finally {
+      await conn.close();
+    }
+  }
+
+  static Future<void> saveRuangan(Ruangan r) async {
+    final conn = await DBConnection.connect();
+    try {
+      await conn.execute(
+        Sql.named('INSERT INTO ruangan (kode_ruangan, nama_ruangan, kapasitas_ruangan, lokasi) '
+            'VALUES (@kode, @nama, @kap, @lokasi)'),
+        parameters: {
+          'kode': r.kodeRuangan,
+          'nama': r.namaRuangan,
+          'kap': r.kapasitasRuangan,
+          'lokasi': r.lokasi,
+        },
+      );
+    } finally {
+      await conn.close();
+    }
+  }
+
+  static Future<void> updateRuangan(String oldKode, Ruangan r) async {
+    final conn = await DBConnection.connect();
+    try {
+      await conn.execute(
+        Sql.named('UPDATE ruangan SET kode_ruangan = @newKode, nama_ruangan = @nama, '
+            'kapasitas_ruangan = @kap, lokasi = @lokasi WHERE kode_ruangan = @oldKode'),
+        parameters: {
+          'oldKode': oldKode,
+          'newKode': r.kodeRuangan,
+          'nama': r.namaRuangan,
+          'kap': r.kapasitasRuangan,
+          'lokasi': r.lokasi,
+        },
+      );
+    } finally {
+      await conn.close();
+    }
+  }
+
+  static Future<void> deleteRuangan(String kode) async {
+    final conn = await DBConnection.connect();
+    try {
+      await conn.execute(
+        Sql.named('DELETE FROM ruangan WHERE kode_ruangan = @kode'),
+        parameters: {'kode': kode},
+      );
+    } finally {
+      await conn.close();
+    }
+  }
+
+  static Future<void> savePertemuan(PertemuanKuliah p) async {
+    final conn = await DBConnection.connect();
+    try {
+      await conn.execute(
+        Sql.named('INSERT INTO pertemuan_kuliah (id, nomor_pertemuan, tanggal, id_kelas_kuliah, '
+            'status_sesi, catatan, tahun_akademik, semester, kode_ruangan, nama_ruangan, hari, '
+            'jam_mulai, jam_selesai) VALUES (@id, @nomor, @tanggal, @idKelas, @status, @catatan, '
+            '@tahun, @sem, @kruangan, @ruangan, @hari, @mulai, @selesai)'),
+        parameters: {
+          'id': p.id,
+          'nomor': p.nomorPertemuan,
+          'tanggal': p.tanggal,
+          'idKelas': p.idKelasKuliah,
+          'status': p.statusSesi,
+          'catatan': p.catatan,
+          'tahun': p.tahunAkademik,
+          'sem': p.semester,
+          'kruangan': p.kodeRuangan,
+          'ruangan': p.namaRuangan,
+          'hari': p.hari,
+          'mulai': p.jamMulai,
+          'selesai': p.jamSelesai,
+        },
+      );
+    } finally {
+      await conn.close();
+    }
+  }
+
+  static Future<void> updatePertemuan(PertemuanKuliah p) async {
+    final conn = await DBConnection.connect();
+    try {
+      await conn.execute(
+        Sql.named('UPDATE pertemuan_kuliah SET status_sesi = @status, catatan = @catatan '
+            'WHERE id = @id'),
+        parameters: {
+          'id': p.id,
+          'status': p.statusSesi,
+          'catatan': p.catatan,
+        },
+      );
+    } finally {
+      await conn.close();
+    }
+  }
+
+  static Future<void> savePresensiMahasiswa(PresensiMahasiswa pm) async {
+    final conn = await DBConnection.connect();
+    try {
+      await conn.execute(
+        Sql.named('INSERT INTO presensi_mahasiswa (id, id_pertemuan, nim, status, waktu_presensi, catatan) '
+            'VALUES (@id, @idPertemuan, @nim, @status, @waktu, @catatan) '
+            'ON CONFLICT (id) DO UPDATE SET status = EXCLUDED.status, waktu_presensi = EXCLUDED.waktu_presensi, '
+            'catatan = EXCLUDED.catatan'),
+        parameters: {
+          'id': pm.id,
+          'idPertemuan': pm.idPertemuan,
+          'nim': pm.nim,
+          'status': pm.status,
+          'waktu': pm.waktuPresensi,
+          'catatan': pm.catatan,
+        },
+      );
+    } finally {
+      await conn.close();
+    }
+  }
+
+  static Future<void> savePresensiDosen(PresensiDosen pd) async {
+    final conn = await DBConnection.connect();
+    try {
+      await conn.execute(
+        Sql.named('INSERT INTO presensi_dosen (id, id_pertemuan, nidn, status, waktu_presensi) '
+            'VALUES (@id, @idPertemuan, @nidn, @status, @waktu) '
+            'ON CONFLICT (id) DO UPDATE SET status = EXCLUDED.status, waktu_presensi = EXCLUDED.waktu_presensi'),
+        parameters: {
+          'id': pd.id,
+          'idPertemuan': pd.idPertemuan,
+          'nidn': pd.nidn,
+          'status': pd.status,
+          'waktu': pd.waktuPresensi,
+        },
+      );
+    } finally {
+      await conn.close();
+    }
+  }
+
+  static Future<void> saveProdi(Prodi p) async {
+    final conn = await DBConnection.connect();
+    try {
+      await conn.execute(
+        Sql.named('INSERT INTO prodi (kode_prodi, nama_prodi, alias_prodi) VALUES (@kode, @nama, @alias)'),
+        parameters: {
+          'kode': p.kodeProdi,
+          'nama': p.namaProdi,
+          'alias': p.aliasProdi,
+        },
+      );
+    } finally {
+      await conn.close();
+    }
+  }
+
+  static Future<void> updateProdi(String oldKode, Prodi p) async {
+    final conn = await DBConnection.connect();
+    try {
+      await conn.execute(
+        Sql.named('UPDATE prodi SET kode_prodi = @newKode, nama_prodi = @nama, alias_prodi = @alias '
+            'WHERE kode_prodi = @oldKode'),
+        parameters: {
+          'oldKode': oldKode,
+          'newKode': p.kodeProdi,
+          'nama': p.namaProdi,
+          'alias': p.aliasProdi,
+        },
+      );
+    } finally {
+      await conn.close();
+    }
+  }
+
+  static Future<void> deleteProdi(String kode) async {
+    final conn = await DBConnection.connect();
+    try {
+      await conn.execute(
+        Sql.named('DELETE FROM prodi WHERE kode_prodi = @kode'),
+        parameters: {'kode': kode},
+      );
+    } finally {
+      await conn.close();
+    }
+  }
+
+  static Future<void> saveMataKuliah(MataKuliah mk) async {
+    final conn = await DBConnection.connect();
+    try {
+      await conn.execute(
+        Sql.named('INSERT INTO mata_kuliah (kode_mata_kuliah, nama_mata_kuliah, jumlah_sks, kode_prodi) '
+            'VALUES (@kode, @nama, @sks, @prodi)'),
+        parameters: {
+          'kode': mk.kodeMataKuliah,
+          'nama': mk.namaMataKuliah,
+          'sks': mk.jumlahSks,
+          'prodi': mk.kodeProdi,
+        },
+      );
+    } finally {
+      await conn.close();
+    }
+  }
+
+  static Future<void> updateMataKuliah(String oldKode, MataKuliah mk) async {
+    final conn = await DBConnection.connect();
+    try {
+      await conn.execute(
+        Sql.named('UPDATE mata_kuliah SET kode_mata_kuliah = @newKode, nama_mata_kuliah = @nama, '
+            'jumlah_sks = @sks, kode_prodi = @prodi WHERE kode_mata_kuliah = @oldKode'),
+        parameters: {
+          'oldKode': oldKode,
+          'newKode': mk.kodeMataKuliah,
+          'nama': mk.namaMataKuliah,
+          'sks': mk.jumlahSks,
+          'prodi': mk.kodeProdi,
+        },
+      );
+    } finally {
+      await conn.close();
+    }
+  }
+
+  static Future<void> deleteMataKuliah(String kode) async {
+    final conn = await DBConnection.connect();
+    try {
+      await conn.execute(
+        Sql.named('DELETE FROM mata_kuliah WHERE kode_mata_kuliah = @kode'),
+        parameters: {'kode': kode},
+      );
+    } finally {
+      await conn.close();
+    }
+  }
+
+  static Future<void> saveDosen(Dosen d) async {
+    final conn = await DBConnection.connect();
+    try {
+      await conn.execute(
+        Sql.named('INSERT INTO dosen (nidn, nama, kode_prodi) VALUES (@nidn, @nama, @prodi)'),
+        parameters: {
+          'nidn': d.nidn,
+          'nama': d.nama,
+          'prodi': d.kodeProdi,
+        },
+      );
+    } finally {
+      await conn.close();
+    }
+  }
+
+  static Future<void> updateDosen(String oldNidn, Dosen d) async {
+    final conn = await DBConnection.connect();
+    try {
+      await conn.execute(
+        Sql.named('UPDATE dosen SET nidn = @newNidn, nama = @nama, kode_prodi = @prodi '
+            'WHERE nidn = @oldNidn'),
+        parameters: {
+          'oldNidn': oldNidn,
+          'newNidn': d.nidn,
+          'nama': d.nama,
+          'prodi': d.kodeProdi,
+        },
+      );
+    } finally {
+      await conn.close();
+    }
+  }
+
+  static Future<void> deleteDosen(String nidn) async {
+    final conn = await DBConnection.connect();
+    try {
+      await conn.execute(
+        Sql.named('DELETE FROM dosen WHERE nidn = @nidn'),
+        parameters: {'nidn': nidn},
+      );
+    } finally {
+      await conn.close();
+    }
+  }
+
+  static Future<void> saveMahasiswa(Mahasiswa m) async {
+    final conn = await DBConnection.connect();
+    try {
+      await conn.execute(
+        Sql.named('INSERT INTO mahasiswa (nim, nama_lengkap, jk, kode_prodi, tanggal_lahir, '
+            'angkatan, is_aktif, dosen_pembimbing_nidn) VALUES (@nim, @nama, @jk, @prodi, @tgl, '
+            '@angkatan, @aktif, @dosen)'),
+        parameters: {
+          'nim': m.nim,
+          'nama': m.namaLengkap,
+          'jk': m.jk,
+          'prodi': m.kodeProdi,
+          'tgl': m.tanggalLahir,
+          'angkatan': m.angkatan,
+          'aktif': m.isAktif,
+          'dosen': m.dosenPembimbingNidn,
+        },
+      );
+    } finally {
+      await conn.close();
+    }
+  }
+
+  static Future<void> updateMahasiswa(String oldNim, Mahasiswa m) async {
+    final conn = await DBConnection.connect();
+    try {
+      await conn.execute(
+        Sql.named('UPDATE mahasiswa SET nim = @newNim, nama_lengkap = @nama, jk = @jk, '
+            'kode_prodi = @prodi, tanggal_lahir = @tgl, angkatan = @angkatan, is_aktif = @aktif, '
+            'dosen_pembimbing_nidn = @dosen WHERE nim = @oldNim'),
+        parameters: {
+          'oldNim': oldNim,
+          'newNim': m.nim,
+          'nama': m.namaLengkap,
+          'jk': m.jk,
+          'prodi': m.kodeProdi,
+          'tgl': m.tanggalLahir,
+          'angkatan': m.angkatan,
+          'aktif': m.isAktif,
+          'dosen': m.dosenPembimbingNidn,
+        },
+      );
+    } finally {
+      await conn.close();
+    }
+  }
+
+  static Future<void> deleteMahasiswa(String nim) async {
+    final conn = await DBConnection.connect();
+    try {
+      await conn.execute(
+        Sql.named('DELETE FROM mahasiswa WHERE nim = @nim'),
+        parameters: {'nim': nim},
+      );
+    } finally {
+      await conn.close();
+    }
+  }
+  static Future<void> saveMateriKuliah(MateriKuliah m) async {
+    final conn = await DBConnection.connect();
+    try {
+      await conn.execute(
+        Sql.named('INSERT INTO materi_kuliah (id, id_kelas_kuliah, minggu, judul_bab, deskripsi_bab, created_at) '
+            'VALUES (@id, @idKelas, @minggu, @judul, @deskripsi, @createdAt)'),
+        parameters: {
+          'id': m.id,
+          'idKelas': m.idKelasKuliah,
+          'minggu': m.minggu,
+          'judul': m.judulBab,
+          'deskripsi': m.deskripsiBab,
+          'createdAt': m.createdAt,
+        },
+      );
+    } finally {
+      await conn.close();
+    }
+  }
+
+  static Future<void> updateMateriKuliah(MateriKuliah m) async {
+    final conn = await DBConnection.connect();
+    try {
+      await conn.execute(
+        Sql.named('UPDATE materi_kuliah SET minggu = @minggu, judul_bab = @judul, deskripsi_bab = @deskripsi '
+            'WHERE id = @id'),
+        parameters: {
+          'id': m.id,
+          'minggu': m.minggu,
+          'judul': m.judulBab,
+          'deskripsi': m.deskripsiBab,
+        },
+      );
+    } finally {
+      await conn.close();
+    }
+  }
+
+  static Future<void> deleteMateriKuliah(String id) async {
+    final conn = await DBConnection.connect();
+    try {
+      await conn.execute(
+        Sql.named('DELETE FROM materi_kuliah WHERE id = @id'),
+        parameters: {'id': id},
+      );
+    } finally {
+      await conn.close();
+    }
+  }
+
+  static Future<void> saveMateriFile(MateriFile mf) async {
+    final conn = await DBConnection.connect();
+    try {
+      final res = await conn.execute(
+        Sql.named('INSERT INTO materi_file (id_materi, nama, tipe, url) '
+            'VALUES (@idMateri, @nama, @tipe, @url) RETURNING id'),
+        parameters: {
+          'idMateri': mf.idMateri,
+          'nama': mf.nama,
+          'tipe': mf.tipe,
+          'url': mf.url,
+        },
+      );
+      if (res.isNotEmpty) {
+        mf.id = res[0][0] as int;
+      }
+    } finally {
+      await conn.close();
+    }
+  }
+
+  static Future<void> deleteMateriFile(int id) async {
+    final conn = await DBConnection.connect();
+    try {
+      await conn.execute(
+        Sql.named('DELETE FROM materi_file WHERE id = @id'),
+        parameters: {'id': id},
+      );
+    } finally {
+      await conn.close();
+    }
+  }
+
+  static Future<void> saveRencanaMateri(RencanaMateri rm) async {
+    final conn = await DBConnection.connect();
+    try {
+      final res = await conn.execute(
+        Sql.named('INSERT INTO rencana_materi (id_kelas_kuliah, minggu, judul_bab, sub_bab, sudah_dibahas) '
+            'VALUES (@idKelas, @minggu, @judul, @subBab, @dibahas) RETURNING id'),
+        parameters: {
+          'idKelas': rm.idKelasKuliah,
+          'minggu': rm.minggu,
+          'judul': rm.judulBab,
+          'subBab': rm.subBab,
+          'dibahas': rm.sudahDibahas,
+        },
+      );
+      if (res.isNotEmpty) {
+        rm.id = res[0][0] as int;
+      }
+    } finally {
+      await conn.close();
+    }
+  }
+
+  static Future<void> updateRencanaMateri(RencanaMateri rm) async {
+    final conn = await DBConnection.connect();
+    try {
+      await conn.execute(
+        Sql.named('UPDATE rencana_materi SET minggu = @minggu, judul_bab = @judul, '
+            'sub_bab = @subBab, sudah_dibahas = @dibahas WHERE id = @id'),
+        parameters: {
+          'id': rm.id,
+          'minggu': rm.minggu,
+          'judul': rm.judulBab,
+          'subBab': rm.subBab,
+          'dibahas': rm.sudahDibahas,
+        },
+      );
+    } finally {
+      await conn.close();
+    }
+  }
+
+  static Future<void> deleteRencanaMateri(int id) async {
+    final conn = await DBConnection.connect();
+    try {
+      await conn.execute(
+        Sql.named('DELETE FROM rencana_materi WHERE id = @id'),
+        parameters: {'id': id},
+      );
+    } finally {
+      await conn.close();
+    }
+  }
 }
-

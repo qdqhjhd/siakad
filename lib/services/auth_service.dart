@@ -1,25 +1,47 @@
 import '../data/app_data.dart';
+import '../database/db_connection.dart';
 import '../models/user.dart';
+import 'package:postgres/postgres.dart';
 
 class AuthService {
   const AuthService();
 
-  User? login(String username, String password) {
-    final inputUsername = username.trim().toLowerCase();
-    final inputPassword = password.trim();
+  Future<User?> login(String username, String password) async {
+    final conn = await DBConnection.connect();
+    try {
+      final inputUsername = username.trim().toLowerCase();
+      final inputPassword = password.trim();
 
-    for (final user in AppData.users) {
-      if ((user.username.toLowerCase() == inputUsername ||
-              user.identifier.toLowerCase() == inputUsername) &&
-          user.password == inputPassword) {
-        _setCurrentUser(user);
-        return user;
-      }
+      final result = await conn.execute(
+        Sql.named(
+          'SELECT username, password, nama, identifier, role, kode_prodi '
+          'FROM users '
+          'WHERE (LOWER(username) = @u OR LOWER(identifier) = @u) '
+          'AND password = @p',
+        ),
+        parameters: {'u': inputUsername, 'p': inputPassword},
+      );
+
+      if (result.isEmpty) return null;
+
+      final row = result.first;
+      final user = User(
+        username: row[0] as String,
+        password: row[1] as String,
+        nama: row[2] as String,
+        identifier: row[3] as String,
+        role: row[4] as String,
+        kodeProdi: row[5] as String?,
+      );
+
+      await _setCurrentUser(user, conn);
+      return user;
+    } finally {
+      await conn.close();
     }
-    return null;
   }
 
-  void _setCurrentUser(User user) {
+  Future<void> _setCurrentUser(User user, dynamic conn) async {
     AppData.currentNim = '';
     AppData.currentDosenNidn = '';
     AppData.currentDosenNama = '';
@@ -32,18 +54,48 @@ class AuthService {
     }
 
     if (user.role == 'dosen') {
-      final dosen = AppData.daftarDosen.firstWhere(
-        (d) => d.nidn == user.identifier,
+      final result = await conn.execute(
+        Sql.named(
+          'SELECT nidn, nama, kode_prodi FROM dosen WHERE nidn = @nidn',
+        ),
+        parameters: {'nidn': user.identifier},
       );
-      AppData.currentDosenNidn = dosen.nidn;
-      AppData.currentDosenNama = dosen.nama;
-      AppData.currentDosenNidn = dosen.nidn;
-      AppData.currentDosenProdi = dosen.kodeProdi;
+      if (result.isNotEmpty) {
+        final row = result.first;
+        AppData.currentDosenNidn = row[0] as String;
+        AppData.currentDosenNama = row[1] as String;
+        AppData.currentDosenProdi = row[2] as String;
+      }
     }
 
     if (user.role == 'admin_prodi' || user.role == 'pimpinan_prodi') {
       AppData.currentAdminProdiKode = user.kodeProdi ?? '';
       AppData.currentAdminProdiNama = user.nama;
+    }
+  }
+
+  // Untuk autocomplete di login page
+  Future<List<User>> getAllUsers() async {
+    final conn = await DBConnection.connect();
+    try {
+      final result = await conn.execute(
+        'SELECT username, password, nama, identifier, role, kode_prodi '
+        'FROM users ORDER BY role, username',
+      );
+      return result
+          .map(
+            (row) => User(
+              username: row[0] as String,
+              password: row[1] as String,
+              nama: row[2] as String,
+              identifier: row[3] as String,
+              role: row[4] as String,
+              kodeProdi: row[5] as String?,
+            ),
+          )
+          .toList();
+    } finally {
+      await conn.close();
     }
   }
 }

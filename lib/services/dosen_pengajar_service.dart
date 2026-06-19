@@ -9,11 +9,15 @@ class DosenPengajarService {
   List<DosenPengajar> semuaDosenPengajar() => AppData.daftarDosenPengajar;
 
   List<DosenPengajar> dosenPengajarByKelas(String idKelas) {
-    return AppData.daftarDosenPengajar.where((dp) => dp.idKelas == idKelas).toList();
+    return AppData.daftarDosenPengajar
+        .where((dp) => dp.idKelas == idKelas)
+        .toList();
   }
 
   List<DosenPengajar> kelasByDosen(String nidn) {
-    return AppData.daftarDosenPengajar.where((dp) => dp.nidnDosen == nidn).toList();
+    return AppData.daftarDosenPengajar
+        .where((dp) => dp.nidnDosen == nidn)
+        .toList();
   }
 
   Dosen? dosenByNidn(String nidn) {
@@ -31,7 +35,9 @@ class DosenPengajarService {
   /// Daftar kelas yang diajar oleh dosen tertentu
   List<KelasKuliah> kelasDosenPengajar(String nidn) {
     final idKelasList = kelasByDosen(nidn).map((dp) => dp.idKelas).toSet();
-    return AppData.daftarKelas.where((k) => idKelasList.contains(k.id)).toList();
+    return AppData.daftarKelas
+        .where((k) => idKelasList.contains(k.id))
+        .toList();
   }
 
   String? tambahDosenPengajar(DosenPengajar dp) {
@@ -40,24 +46,39 @@ class DosenPengajarService {
     );
     if (sudahAda) return 'Dosen sudah terdaftar di kelas ini';
     AppData.daftarDosenPengajar.add(dp);
+    AppData.saveDosenPengajar(dp);
     return null;
   }
 
   void hapusDosenPengajar(String id) {
     AppData.daftarDosenPengajar.removeWhere((dp) => dp.id == id);
+    AppData.deleteDosenPengajar(id);
   }
 
   /// Cek bentrok jadwal dosen
-  bool isBentrokDosenJadwal(String nidn, String hari, String jamMulai, String jamSelesai, {String? excludeKelasId}) {
+  bool isBentrokDosenJadwal(
+    String nidn,
+    String hari,
+    String jamMulai,
+    String jamSelesai, {
+    String? excludeKelasId,
+  }) {
     final kelasIds = kelasByDosen(nidn).map((dp) => dp.idKelas).toSet();
-    return AppData.daftarKelas.any((k) =>
-      kelasIds.contains(k.id) &&
-      k.hari == hari &&
-      k.id != excludeKelasId &&
-      _isWaktuBentrok(k.jamMulai, k.jamSelesai, jamMulai, jamSelesai));
+    return AppData.daftarKelas.any(
+      (k) =>
+          kelasIds.contains(k.id) &&
+          k.hari == hari &&
+          k.id != excludeKelasId &&
+          _isWaktuBentrok(k.jamMulai, k.jamSelesai, jamMulai, jamSelesai),
+    );
   }
 
-  bool _isWaktuBentrok(String mulai1, String selesai1, String mulai2, String selesai2) {
+  bool _isWaktuBentrok(
+    String mulai1,
+    String selesai1,
+    String mulai2,
+    String selesai2,
+  ) {
     return mulai1.compareTo(selesai2) < 0 && mulai2.compareTo(selesai1) < 0;
   }
 
@@ -71,7 +92,9 @@ class DosenPengajarService {
     } catch (_) {
       // fallback to kelas.dosenPengampu
       try {
-        return AppData.daftarKelas.firstWhere((k) => k.id == idKelas).dosenPengampu;
+        return AppData.daftarKelas
+            .firstWhere((k) => k.id == idKelas)
+            .dosenPengampu;
       } catch (_) {
         return '-';
       }

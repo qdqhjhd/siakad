@@ -214,7 +214,7 @@ class StatTile extends StatelessWidget {
   final String label;
   final Color? color;
   final IconData? icon;
-  final double? progress; // 0.0-1.0 for ring, null = no ring
+  final double? progress;
 
   const StatTile({
     super.key,
@@ -227,74 +227,58 @@ class StatTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final ringColor = color ?? AppColors.primary;
-    final hasRing = progress != null;
-
-    return CyberPanel(
-      padding: const EdgeInsets.all(20),
-      child: Column(
+    final c = color ?? AppColors.primary;
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(12),
+        border: Border(
+          left: BorderSide(color: c, width: 3),
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.04),
+            blurRadius: 8,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: Row(
         children: [
-          if (hasRing) ...[
-            SizedBox(
-              width: 72,
-              height: 72,
-              child: Stack(
-                alignment: Alignment.center,
-                children: [
-                  SizedBox(
-                    width: 72,
-                    height: 72,
-                    child: CircularProgressIndicator(
-                      value: progress!.clamp(0.0, 1.0),
-                      strokeWidth: 6,
-                      strokeCap: StrokeCap.round,
-                      color: ringColor,
-                      backgroundColor: ringColor.withValues(alpha: 0.12),
-                    ),
+          Container(
+            width: 36,
+            height: 36,
+            decoration: BoxDecoration(
+              color: c.withValues(alpha: 0.1),
+              borderRadius: BorderRadius.circular(8),
+            ),
+            child: Icon(icon ?? Icons.bar_chart, color: c, size: 18),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  value,
+                  style: TextStyle(
+                    color: c,
+                    fontSize: 20,
+                    fontWeight: FontWeight.w900,
+                    height: 1.1,
                   ),
-                  if (icon != null)
-                    Icon(icon, color: ringColor, size: 24)
-                  else
-                    Text(
-                      value,
-                      style: TextStyle(
-                        color: ringColor,
-                        fontSize: 18,
-                        fontWeight: FontWeight.w900,
-                      ),
-                    ),
-                ],
-              ),
-            ),
-            const SizedBox(height: 12),
-            if (icon != null)
-              Text(
-                value,
-                style: TextStyle(
-                  color: ringColor,
-                  fontSize: 22,
-                  fontWeight: FontWeight.w900,
                 ),
-              ),
-          ] else ...[
-            Text(
-              value,
-              style: TextStyle(
-                color: ringColor,
-                fontSize: 28,
-                fontWeight: FontWeight.w900,
-              ),
-            ),
-          ],
-          const SizedBox(height: 6),
-          Text(
-            label.toUpperCase(),
-            textAlign: TextAlign.center,
-            style: const TextStyle(
-              color: AppColors.textSecondary,
-              fontSize: 10,
-              letterSpacing: 1.2,
-              fontWeight: FontWeight.w700,
+                Text(
+                  label,
+                  style: const TextStyle(
+                    color: AppColors.textSecondary,
+                    fontSize: 11,
+                    fontWeight: FontWeight.w600,
+                  ),
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ],
             ),
           ),
         ],
@@ -322,72 +306,57 @@ class ProgressMetric extends StatelessWidget {
     final normalized = progress.clamp(0.0, 1.0);
     final percent = (normalized * 100).round();
 
-    return Row(
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        // Circular ring
-        SizedBox(
-          width: 80,
-          height: 80,
-          child: Stack(
-            alignment: Alignment.center,
-            children: [
-              SizedBox(
-                width: 80,
-                height: 80,
-                child: CircularProgressIndicator(
-                  value: normalized,
-                  strokeWidth: 7,
-                  strokeCap: StrokeCap.round,
-                  color: color,
-                  backgroundColor: color.withValues(alpha: 0.12),
-                ),
-              ),
-              Text(
-                '$percent%',
-                style: TextStyle(
-                  color: color,
-                  fontSize: 18,
-                  fontWeight: FontWeight.w900,
-                ),
-              ),
-            ],
-          ),
-        ),
-        const SizedBox(width: 20),
-        // Label & details
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Expanded(
+              child: Text(
                 label,
                 style: const TextStyle(
                   color: AppColors.textPrimary,
-                  fontWeight: FontWeight.w700,
-                  fontSize: 14,
+                  fontWeight: FontWeight.w600,
+                  fontSize: 13,
                 ),
               ),
-              const SizedBox(height: 4),
-              Text(
-                value,
+            ),
+            const SizedBox(width: 8),
+            Text(
+              value,
+              style: TextStyle(
+                color: color,
+                fontWeight: FontWeight.w800,
+                fontSize: 13,
+              ),
+            ),
+            const SizedBox(width: 8),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+              decoration: BoxDecoration(
+                color: color.withValues(alpha: 0.1),
+                borderRadius: BorderRadius.circular(4),
+              ),
+              child: Text(
+                '$percent%',
                 style: TextStyle(
                   color: color,
-                  fontWeight: FontWeight.w900,
-                  fontSize: 22,
+                  fontSize: 11,
+                  fontWeight: FontWeight.w800,
                 ),
               ),
-              const SizedBox(height: 8),
-              // Small colored bar underneath
-              ClipRRect(
-                borderRadius: BorderRadius.circular(4),
-                child: LinearProgressIndicator(
-                  value: normalized,
-                  minHeight: 5,
-                  color: color,
-                  backgroundColor: color.withValues(alpha: 0.12),
-                ),
-              ),
-            ],
+            ),
+          ],
+        ),
+        const SizedBox(height: 6),
+        ClipRRect(
+          borderRadius: BorderRadius.circular(4),
+          child: LinearProgressIndicator(
+            value: normalized,
+            minHeight: 6,
+            color: color,
+            backgroundColor: color.withValues(alpha: 0.12),
           ),
         ),
       ],

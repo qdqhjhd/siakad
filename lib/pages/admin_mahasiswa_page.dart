@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../data/app_data.dart';
 import '../models/mahasiswa.dart';
 import '../theme/app_colors.dart';
+import '../services/mahasiswa_service.dart';
 
 class AdminMahasiswaPage extends StatefulWidget {
   const AdminMahasiswaPage({super.key});
@@ -11,6 +12,8 @@ class AdminMahasiswaPage extends StatefulWidget {
 }
 
 class _AdminMahasiswaPageState extends State<AdminMahasiswaPage> {
+  final MahasiswaService _mahasiswaService = const MahasiswaService();
+
   void formMahasiswa({Mahasiswa? mahasiswa, int? index}) {
     final nimController = TextEditingController(text: mahasiswa?.nim ?? '');
     final namaController = TextEditingController(text: mahasiswa?.namaLengkap ?? '');
@@ -205,28 +208,35 @@ class _AdminMahasiswaPageState extends State<AdminMahasiswaPage> {
 
               setState(() {
                 if (mahasiswa == null) {
-                  AppData.daftarMahasiswa.add(
-                    Mahasiswa(
-                      nim: nimController.text,
-                      namaLengkap: namaController.text,
-                      jk: jk,
-                      kodeProdi: kodeProdi,
-                      angkatan: int.parse(angkatanController.text),
-                      tanggalLahir: tanggalLahir,
-                      dosenPembimbingNidn: dosenPembimbingNidn,
-                      isAktif: isAktif,
-                    ),
+                  final newMhs = Mahasiswa(
+                    nim: nimController.text,
+                    namaLengkap: namaController.text,
+                    jk: jk,
+                    kodeProdi: kodeProdi,
+                    angkatan: int.parse(angkatanController.text),
+                    tanggalLahir: tanggalLahir,
+                    dosenPembimbingNidn: dosenPembimbingNidn,
+                    isAktif: isAktif,
                   );
+                  final error = _mahasiswaService.tambahMahasiswa(newMhs);
+                  if (error != null) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(content: Text(error)),
+                    );
+                    return; // Prevent pop
+                  }
                 } else {
-                  AppData.daftarMahasiswa[index!].nim = nimController.text;
-                  AppData.daftarMahasiswa[index].namaLengkap = namaController.text;
-                  AppData.daftarMahasiswa[index].jk = jk;
-                  AppData.daftarMahasiswa[index].kodeProdi = kodeProdi;
-                  AppData.daftarMahasiswa[index].angkatan =
-                      int.parse(angkatanController.text);
-                  AppData.daftarMahasiswa[index].tanggalLahir = tanggalLahir;
-                  AppData.daftarMahasiswa[index].dosenPembimbingNidn = dosenPembimbingNidn;
-                  AppData.daftarMahasiswa[index].isAktif = isAktif;
+                  final updatedMhs = Mahasiswa(
+                    nim: nimController.text,
+                    namaLengkap: namaController.text,
+                    jk: jk,
+                    kodeProdi: kodeProdi,
+                    angkatan: int.parse(angkatanController.text),
+                    tanggalLahir: tanggalLahir,
+                    dosenPembimbingNidn: dosenPembimbingNidn,
+                    isAktif: isAktif,
+                  );
+                  _mahasiswaService.updateMahasiswa(mahasiswa.nim, updatedMhs);
                 }
               });
 
@@ -276,23 +286,16 @@ class _AdminMahasiswaPageState extends State<AdminMahasiswaPage> {
 
   void hapusMahasiswa(int index) {
     final mhs = AppData.daftarMahasiswa[index];
+    final error = _mahasiswaService.hapusMahasiswa(mhs.nim);
 
-    final sudahAdaNilai = AppData.daftarNilai.any(
-      (nilai) => nilai.nim == mhs.nim,
-    );
-
-    if (sudahAdaNilai) {
+    if (error != null) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Mahasiswa tidak bisa dihapus karena sudah ada nilai'),
-        ),
+        SnackBar(content: Text(error)),
       );
       return;
     }
 
-    setState(() {
-      AppData.daftarMahasiswa.removeAt(index);
-    });
+    setState(() {});
   }
 
   String getNamaProdi(String kodeProdi) {

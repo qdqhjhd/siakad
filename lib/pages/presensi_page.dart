@@ -355,13 +355,29 @@ class _PresensiPageState extends State<PresensiPage> {
                         'Topik: ${meeting.catatan ?? "Materi Perkuliahan"}',
                         style: const TextStyle(color: AppColors.grey, fontSize: 12, fontStyle: FontStyle.italic),
                       ),
+                      const SizedBox(height: 2),
+                      Row(children: [
+                        const Icon(Icons.location_on_outlined, size: 12, color: AppColors.textSecondary),
+                        const SizedBox(width: 4),
+                        Text(
+                          '${meeting.namaRuangan.isNotEmpty ? meeting.namaRuangan : kelas.ruangan}',
+                          style: const TextStyle(color: AppColors.textSecondary, fontSize: 11),
+                        ),
+                        const SizedBox(width: 10),
+                        const Icon(Icons.school_outlined, size: 12, color: AppColors.textSecondary),
+                        const SizedBox(width: 4),
+                        Text(
+                          '${meeting.semester} ${meeting.tahunAkademik}',
+                          style: const TextStyle(color: AppColors.textSecondary, fontSize: 11),
+                        ),
+                      ]),
                       const SizedBox(height: 4),
                       Row(
                         children: [
                           const Icon(Icons.access_time_rounded, size: 12, color: AppColors.primaryLight),
                           const SizedBox(width: 4),
                           Text(
-                            'Sesi dibuka: ${kelas.hari}, ${kelas.jamMulai} - ${kelas.jamSelesai}',
+                            '${meeting.hari.isNotEmpty ? meeting.hari : kelas.hari}, ${meeting.jamMulai.isNotEmpty ? meeting.jamMulai : kelas.jamMulai} – ${meeting.jamSelesai.isNotEmpty ? meeting.jamSelesai : kelas.jamSelesai}',
                             style: const TextStyle(color: AppColors.primaryLight, fontSize: 11, fontWeight: FontWeight.w600),
                           ),
                         ],
@@ -502,6 +518,10 @@ class _PresensiPageState extends State<PresensiPage> {
                         'Pertemuan #${meeting.nomorPertemuan} • ${meeting.tanggal.day}/${meeting.tanggal.month}/${meeting.tanggal.year}',
                         style: const TextStyle(color: AppColors.textSecondary, fontSize: 12),
                       ),
+                      Text(
+                        '${meeting.semester} ${meeting.tahunAkademik} • ${meeting.namaRuangan.isNotEmpty ? meeting.namaRuangan : kelas.ruangan} • ${meeting.jamMulai.isNotEmpty ? meeting.jamMulai : kelas.jamMulai}–${meeting.jamSelesai.isNotEmpty ? meeting.jamSelesai : kelas.jamSelesai}',
+                        style: const TextStyle(color: AppColors.textSecondary, fontSize: 11),
+                      ),
                       if (meeting.catatan != null)
                         Text(
                           'Materi: ${meeting.catatan}',
@@ -521,9 +541,16 @@ class _PresensiPageState extends State<PresensiPage> {
                     children: [
                       Icon(statusIcon, color: statusColor, size: 16),
                       const SizedBox(width: 6),
-                      Text(
-                        presence.status,
-                        style: TextStyle(color: statusColor, fontWeight: FontWeight.bold, fontSize: 12),
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.end,
+                        children: [
+                          Text(presence.status, style: TextStyle(color: statusColor, fontWeight: FontWeight.bold, fontSize: 11)),
+                          if (presence.waktuPresensi != null)
+                            Text(
+                              '${presence.waktuPresensi!.hour.toString().padLeft(2,'0')}:${presence.waktuPresensi!.minute.toString().padLeft(2,'0')}',
+                              style: const TextStyle(color: AppColors.textSecondary, fontSize: 10),
+                            ),
+                        ],
                       ),
                     ],
                   ),
@@ -666,15 +693,24 @@ class _PresensiPageState extends State<PresensiPage> {
               },
             ),
             Expanded(
-              child: Text(
-                '${mk.namaMataKuliah} (Kelas ${kelas.namaKelas})',
-                style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: AppColors.textPrimary),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    '${mk.namaMataKuliah} (Kelas ${kelas.namaKelas})',
+                    style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: AppColors.textPrimary),
+                  ),
+                  Text(
+                    'Semester ${AppData.daftarJadwalKrs.isNotEmpty ? AppData.daftarJadwalKrs.first.semester : '-'} ${AppData.daftarJadwalKrs.isNotEmpty ? AppData.daftarJadwalKrs.first.tahunAkademik : '-'} • Ruang: ${kelas.ruangan} • ${kelas.hari}, ${kelas.jamMulai}-${kelas.jamSelesai}',
+                    style: const TextStyle(color: AppColors.textSecondary, fontSize: 12),
+                  ),
+                ],
               ),
             ),
             ElevatedButton.icon(
               onPressed: () => _showCreateMeetingDialog(kelas),
               icon: const Icon(Icons.add),
-              label: const Text('Buat Pertemuan'),
+              label: const Text('+ Buat Pertemuan'),
             ),
           ],
         ),
@@ -742,7 +778,21 @@ class _PresensiPageState extends State<PresensiPage> {
                               ],
                             ),
                             const SizedBox(height: 8),
-                            Text('Tanggal: ${meeting.tanggal.day}/${meeting.tanggal.month}/${meeting.tanggal.year} • Topik: ${meeting.catatan ?? "-"}', style: const TextStyle(color: AppColors.textSecondary)),
+                            Text(
+                      '${meeting.hari.isNotEmpty ? meeting.hari : kelas.hari}, ${meeting.tanggal.day}/${meeting.tanggal.month}/${meeting.tanggal.year}  •  ${meeting.jamMulai.isNotEmpty ? meeting.jamMulai : kelas.jamMulai}–${meeting.jamSelesai.isNotEmpty ? meeting.jamSelesai : kelas.jamSelesai}',
+                      style: const TextStyle(color: AppColors.textSecondary, fontSize: 12),
+                    ),
+                    Row(children: [
+                      const Icon(Icons.location_on_outlined, size: 12, color: AppColors.textSecondary),
+                      const SizedBox(width: 4),
+                      Text('${meeting.namaRuangan.isNotEmpty ? meeting.namaRuangan : kelas.ruangan}', style: const TextStyle(color: AppColors.textSecondary, fontSize: 12)),
+                      const SizedBox(width: 12),
+                      const Icon(Icons.school_outlined, size: 12, color: AppColors.textSecondary),
+                      const SizedBox(width: 4),
+                      Text('Semester ${meeting.semester} ${meeting.tahunAkademik}', style: const TextStyle(color: AppColors.textSecondary, fontSize: 12)),
+                    ]),
+                    if (meeting.catatan != null && meeting.catatan!.isNotEmpty)
+                      Text('Topik: ${meeting.catatan}', style: const TextStyle(color: AppColors.grey, fontSize: 12, fontStyle: FontStyle.italic)),
                             const SizedBox(height: 12),
                             Row(
                               children: [
@@ -832,52 +882,80 @@ class _PresensiPageState extends State<PresensiPage> {
     final catatanController = TextEditingController();
     DateTime selectedDate = DateTime.now();
 
+    // Resolve ruangan dari master data
+    final ruanganObj = AppData.daftarRuangan.where((r) => r.kodeRuangan == kelas.kodeRuangan).toList();
+    final namaRuanganKelas = ruanganObj.isNotEmpty ? ruanganObj.first.namaRuangan : kelas.ruangan;
+
+    // Jadwal KRS aktif
+    final jadwalAktif = AppData.daftarJadwalKrs.isNotEmpty ? AppData.daftarJadwalKrs.first : null;
+    final tahunAkademik = jadwalAktif?.tahunAkademik ?? '2024/2025';
+    final semester = jadwalAktif?.semester ?? 'Ganjil';
+
     showDialog(
       context: context,
       builder: (ctx) => StatefulBuilder(
         builder: (ctx, setDlgState) => AlertDialog(
           backgroundColor: AppColors.surface,
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
-          title: const Text('Buat Pertemuan Baru', style: TextStyle(fontWeight: FontWeight.bold)),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              TextField(
-                controller: noController,
-                keyboardType: TextInputType.number,
-                decoration: const InputDecoration(labelText: 'Nomor Pertemuan (1-16)'),
-              ),
-              const SizedBox(height: 12),
-              ListTile(
-                contentPadding: EdgeInsets.zero,
-                title: Text('Tanggal: ${selectedDate.day}/${selectedDate.month}/${selectedDate.year}'),
-                trailing: const Icon(Icons.calendar_month, color: AppColors.primary),
-                onTap: () async {
-                  final picked = await showDatePicker(
-                    context: context,
-                    initialDate: selectedDate,
-                    firstDate: DateTime(2025),
-                    lastDate: DateTime(2030),
-                  );
-                  if (picked != null) {
-                    setDlgState(() {
-                      selectedDate = picked;
-                    });
-                  }
-                },
-              ),
-              const SizedBox(height: 12),
-              TextField(
-                controller: catatanController,
-                decoration: const InputDecoration(labelText: 'Topik / Catatan Materi'),
-              ),
-            ],
+          title: Text('Buat Pertemuan – ${kelas.id}', style: const TextStyle(fontWeight: FontWeight.bold)),
+          content: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Info konteks akademik (read-only)
+                Container(
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: AppColors.bg,
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(color: AppColors.border),
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Text('INFORMASI KELAS', style: TextStyle(color: AppColors.textSecondary, fontSize: 10, fontWeight: FontWeight.w700, letterSpacing: 1)),
+                      const SizedBox(height: 8),
+                      _InfoRow(Icons.book_outlined, 'Mata Kuliah',
+                        AppData.daftarMataKuliah.firstWhere((m) => m.kodeMataKuliah == kelas.kodeMataKuliah, orElse: () => AppData.daftarMataKuliah.first).namaMataKuliah),
+                      _InfoRow(Icons.person_outline, 'Dosen', kelas.dosenPengampu),
+                      _InfoRow(Icons.location_on_outlined, 'Ruangan', '$namaRuanganKelas (${kelas.kodeRuangan})'),
+                      _InfoRow(Icons.access_time, 'Jadwal', '${kelas.hari}, ${kelas.jamMulai}–${kelas.jamSelesai}'),
+                      _InfoRow(Icons.school_outlined, 'Semester', '$semester $tahunAkademik'),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 16),
+                TextField(
+                  controller: noController,
+                  keyboardType: TextInputType.number,
+                  decoration: const InputDecoration(labelText: 'Nomor Pertemuan (1–16)'),
+                ),
+                const SizedBox(height: 12),
+                ListTile(
+                  contentPadding: EdgeInsets.zero,
+                  leading: const Icon(Icons.calendar_month, color: AppColors.primary),
+                  title: Text('Tanggal: ${selectedDate.day}/${selectedDate.month}/${selectedDate.year}'),
+                  onTap: () async {
+                    final picked = await showDatePicker(
+                      context: context,
+                      initialDate: selectedDate,
+                      firstDate: DateTime(2025),
+                      lastDate: DateTime(2030),
+                    );
+                    if (picked != null) setDlgState(() => selectedDate = picked);
+                  },
+                ),
+                const SizedBox(height: 12),
+                TextField(
+                  controller: catatanController,
+                  decoration: const InputDecoration(labelText: 'Topik / Catatan Materi'),
+                ),
+              ],
+            ),
           ),
           actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(ctx),
-              child: const Text('Batal'),
-            ),
+            TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Batal')),
             ElevatedButton(
               onPressed: () {
                 final numVal = int.tryParse(noController.text) ?? 1;
@@ -886,14 +964,17 @@ class _PresensiPageState extends State<PresensiPage> {
                   nomorPertemuan: numVal,
                   tanggal: selectedDate,
                   idKelasKuliah: kelas.id,
-                  statusSesi: 'tutup', // Default closed, dosen has to toggle open
+                  statusSesi: 'tutup',
                   catatan: catatanController.text.trim(),
+                  tahunAkademik: tahunAkademik,
+                  semester: semester,
+                  kodeRuangan: kelas.kodeRuangan,
+                  namaRuangan: namaRuanganKelas,
+                  hari: kelas.hari,
+                  jamMulai: kelas.jamMulai,
+                  jamSelesai: kelas.jamSelesai,
                 );
-
-                setState(() {
-                  AppData.daftarPertemuanKuliah.add(newMeeting);
-                });
-
+                setState(() => AppData.daftarPertemuanKuliah.add(newMeeting));
                 Navigator.pop(ctx);
                 ScaffoldMessenger.of(context).showSnackBar(
                   SnackBar(content: Text('Pertemuan #$numVal berhasil dibuat!')),
@@ -1399,7 +1480,7 @@ class _PresensiPageState extends State<PresensiPage> {
                             ),
                             const SizedBox(height: 4),
                             Text(
-                              'Dosen Pengampu: ${kelas.dosenPengampu} • Ruangan: ${kelas.ruangan} • Tanggal: ${meeting.tanggal.day}/${meeting.tanggal.month}/${meeting.tanggal.year}',
+                              '${kelas.dosenPengampu} • ${meeting.namaRuangan.isNotEmpty ? meeting.namaRuangan : kelas.ruangan} • ${meeting.semester} ${meeting.tahunAkademik}',
                               style: const TextStyle(color: AppColors.textSecondary, fontSize: 12),
                             ),
                             if (meeting.catatan != null && meeting.catatan!.isNotEmpty)
@@ -1491,7 +1572,37 @@ class _PresensiPageState extends State<PresensiPage> {
                 ],
               ),
               const Divider(),
-              // Dosen Details
+              // Header info pertemuan
+              Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: AppColors.bg,
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(color: AppColors.border),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text('DETAIL PERTEMUAN', style: TextStyle(color: AppColors.textSecondary, fontSize: 10, fontWeight: FontWeight.w700, letterSpacing: 1)),
+                    const SizedBox(height: 8),
+                    (() {
+                      final mk = AppData.daftarMataKuliah.firstWhere((m) => m.kodeMataKuliah == kelas.kodeMataKuliah, orElse: () => AppData.daftarMataKuliah.first);
+                      return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                        _InfoRow(Icons.book_outlined, 'Mata Kuliah', '${mk.kodeMataKuliah} – ${mk.namaMataKuliah} (${mk.jumlahSks} SKS)'),
+                        _InfoRow(Icons.class_outlined, 'Kelas', 'Kelas ${kelas.namaKelas} (${kelas.id})'),
+                        _InfoRow(Icons.person_outline, 'Dosen', '${kelas.dosenPengampu} (${dosenPresence.nidn.isNotEmpty ? dosenPresence.nidn : '-'})'),
+                        _InfoRow(Icons.location_on_outlined, 'Ruangan', meeting.namaRuangan.isNotEmpty ? '${meeting.namaRuangan} (${meeting.kodeRuangan})' : kelas.ruangan),
+                        _InfoRow(Icons.access_time, 'Jadwal', '${meeting.hari.isNotEmpty ? meeting.hari : kelas.hari}, ${meeting.jamMulai.isNotEmpty ? meeting.jamMulai : kelas.jamMulai}–${meeting.jamSelesai.isNotEmpty ? meeting.jamSelesai : kelas.jamSelesai}'),
+                        _InfoRow(Icons.school_outlined, 'Semester', '${meeting.semester} ${meeting.tahunAkademik}'),
+                        if (meeting.catatan != null && meeting.catatan!.isNotEmpty)
+                          _InfoRow(Icons.notes, 'Topik', meeting.catatan!),
+                      ]);
+                    })(),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 10),
+              // Dosen Presensi
               CyberPanel(
                 padding: const EdgeInsets.all(12),
                 color: AppColors.bg,
@@ -1506,8 +1617,13 @@ class _PresensiPageState extends State<PresensiPage> {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          const Text('DOSEN PENGAMPUMENGATUR', style: TextStyle(color: AppColors.textSecondary, fontSize: 10, fontWeight: FontWeight.bold)),
+                          const Text('DOSEN PENGAMPU', style: TextStyle(color: AppColors.textSecondary, fontSize: 10, fontWeight: FontWeight.bold)),
                           Text(kelas.dosenPengampu, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
+                          if (dosenPresence.waktuPresensi != null)
+                            Text(
+                              'Presensi pukul ${dosenPresence.waktuPresensi!.hour.toString().padLeft(2,'0')}:${dosenPresence.waktuPresensi!.minute.toString().padLeft(2,'0')}',
+                              style: const TextStyle(color: AppColors.textSecondary, fontSize: 11),
+                            ),
                         ],
                       ),
                     ),
@@ -1583,6 +1699,42 @@ class _PresensiPageState extends State<PresensiPage> {
             ],
           ),
         ),
+      ),
+    );
+  }
+}
+
+class _InfoRow extends StatelessWidget {
+  final IconData icon;
+  final String label;
+  final String value;
+
+  const _InfoRow(this.icon, this.label, this.value, {super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 4.0),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Icon(icon, size: 16, color: AppColors.primaryLight),
+          const SizedBox(width: 8),
+          Expanded(
+            child: RichText(
+              text: TextSpan(
+                style: const TextStyle(fontSize: 12, color: AppColors.textPrimary),
+                children: [
+                  TextSpan(
+                    text: '$label: ',
+                    style: const TextStyle(fontWeight: FontWeight.bold, color: AppColors.textSecondary),
+                  ),
+                  TextSpan(text: value),
+                ],
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }

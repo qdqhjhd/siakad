@@ -5,8 +5,9 @@ import '../models/ruangan.dart';
 import '../models/dosen.dart';
 import '../models/dosen_pengajar.dart';
 import '../models/mata_kuliah.dart';
-import '../services/ruangan_service.dart';
 import '../services/dosen_pengajar_service.dart';
+import '../services/kelas_kuliah_service.dart';
+import '../services/ruangan_service.dart';
 import '../theme/app_colors.dart';
 import '../widgets/cyber_widgets.dart';
 
@@ -20,6 +21,7 @@ class KelasKuliahPage extends StatefulWidget {
 class _KelasKuliahPageState extends State<KelasKuliahPage> {
   final _ruanganService = const RuanganService();
   final _dosenService = const DosenPengajarService();
+  final _kelasService = const KelasKuliahService();
 
   Future<void> _pilihWaktu(BuildContext context, TextEditingController controller) async {
     final TimeOfDay? picked = await showTimePicker(
@@ -274,30 +276,31 @@ class _KelasKuliahPageState extends State<KelasKuliahPage> {
               }
 
               setState(() {
-                AppData.daftarKelas.add(
-                  KelasKuliah(
-                    id: DateTime.now().millisecondsSinceEpoch.toString(),
-                    kodeSemester: AppData.semesterAktif,
-                    kodeProdi: kodeProdi,
-                    kodeMataKuliah: mk!,
-                    namaKelas: nama.text.toUpperCase(),
-                    dosenPengampu: 'Belum Ada Dosen',
-                    kapasitas: capValue,
-                    jumlahPeserta: 0,
-                    jadwal: '$hari, ${jamMulai.text} - ${jamSelesai.text}',
-                    hari: hari!,
-                    jamMulai: jamMulai.text,
-                    jamSelesai: jamSelesai.text,
-                    ruangan: selectedRuangan!.namaRuangan,
-                    kodeRuangan: selectedRuangan!.kodeRuangan,
-                  ),
+                final newKelas = KelasKuliah(
+                  id: DateTime.now().millisecondsSinceEpoch.toString(),
+                  kodeSemester: AppData.semesterAktif,
+                  kodeProdi: kodeProdi,
+                  kodeMataKuliah: mk!,
+                  namaKelas: nama.text.toUpperCase(),
+                  dosenPengampu: 'Belum Ada Dosen',
+                  kapasitas: capValue,
+                  jumlahPeserta: 0,
+                  jadwal: '$hari, ${jamMulai.text} - ${jamSelesai.text}',
+                  hari: hari!,
+                  jamMulai: jamMulai.text,
+                  jamSelesai: jamSelesai.text,
+                  ruangan: selectedRuangan!.namaRuangan,
+                  kodeRuangan: selectedRuangan!.kodeRuangan,
                 );
+                
+                final error = _kelasService.tambahKelas(newKelas);
+                if (error != null) {
+                  ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(error)));
+                } else {
+                  ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Kelas kuliah berhasil dibuat')));
+                  Navigator.pop(context);
+                }
               });
-
-              Navigator.pop(context);
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('Kelas kuliah berhasil dibuat')),
-              );
             },
             child: const Text('Simpan'),
           ),
@@ -497,23 +500,16 @@ class _KelasKuliahPageState extends State<KelasKuliahPage> {
   }
 
   void hapusKelas(String idKelas) {
-    final sudahAdaPeserta = AppData.daftarNilai.any(
-      (nilai) => nilai.idKelasKuliah == idKelas,
-    );
-
-    if (sudahAdaPeserta) {
+    final error = _kelasService.hapusKelas(idKelas);
+    
+    if (error != null) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Kelas tidak bisa dihapus karena sudah ada peserta'),
-        ),
+        SnackBar(content: Text(error)),
       );
       return;
     }
 
-    setState(() {
-      AppData.daftarKelas.removeWhere((kelas) => kelas.id == idKelas);
-      AppData.daftarDosenPengajar.removeWhere((dp) => dp.idKelas == idKelas);
-    });
+    setState(() {});
   }
 
   @override

@@ -86,9 +86,13 @@ class AkademikService {
 
   // Update dosen pembimbing for a mahasiswa
   void updateDosenPembimbing(String nim, String? nidn) {
-    final mhs = AppData.daftarMahasiswa.firstWhere((m) => m.nim == nim, orElse: () => throw Exception('Mahasiswa not found'));
+    final mhs = AppData.daftarMahasiswa.firstWhere(
+      (m) => m.nim == nim,
+      orElse: () => throw Exception('Mahasiswa not found'),
+    );
     mhs.dosenPembimbingNidn = nidn;
   }
+
   double persentaseKehadiranMahasiswa(String nim) {
     final preset = <String, double>{
       '2024010001': 0.92,
@@ -158,15 +162,15 @@ class AkademikService {
     if (sudahAmbilKelas(kelas.id) || kelasPenuh(kelas)) return false;
 
     final mataKuliah = mataKuliahByKode(kelas.kodeMataKuliah);
-    AppData.daftarNilai.add(
-      Nilai(
-        nim: AppData.currentNim,
-        idKelasKuliah: kelas.id,
-        kodeMataKuliah: mataKuliah.kodeMataKuliah,
-        namaMataKuliah: mataKuliah.namaMataKuliah,
-        sksMataKuliah: mataKuliah.jumlahSks,
-      ),
+    final n = Nilai(
+      nim: AppData.currentNim,
+      idKelasKuliah: kelas.id,
+      kodeMataKuliah: mataKuliah.kodeMataKuliah,
+      namaMataKuliah: mataKuliah.namaMataKuliah,
+      sksMataKuliah: mataKuliah.jumlahSks,
     );
+    AppData.daftarNilai.add(n);
+    AppData.saveNilai(n);
     return true;
   }
 
@@ -190,30 +194,35 @@ class AkademikService {
     if (kelasPenuh(kelas)) return false;
 
     final mataKuliah = mataKuliahByKode(kelas.kodeMataKuliah);
-    AppData.daftarNilai.add(
-      Nilai(
-        nim: AppData.currentNim,
-        idKelasKuliah: kelas.id,
-        kodeMataKuliah: mataKuliah.kodeMataKuliah,
-        namaMataKuliah: mataKuliah.namaMataKuliah,
-        sksMataKuliah: mataKuliah.jumlahSks,
-        statusKrs: 'draft',
-      ),
+    final n = Nilai(
+      nim: AppData.currentNim,
+      idKelasKuliah: kelas.id,
+      kodeMataKuliah: mataKuliah.kodeMataKuliah,
+      namaMataKuliah: mataKuliah.namaMataKuliah,
+      sksMataKuliah: mataKuliah.jumlahSks,
+      statusKrs: 'draft',
     );
+    AppData.daftarNilai.add(n);
+    AppData.saveNilai(n);
     return true;
   }
 
-
   void batalDraft(String idKelas) {
     AppData.daftarNilai.removeWhere(
-      (n) => n.nim == AppData.currentNim && n.idKelasKuliah == idKelas && n.statusKrs == 'draft',
+      (n) =>
+          n.nim == AppData.currentNim &&
+          n.idKelasKuliah == idKelas &&
+          n.statusKrs == 'draft',
     );
+    AppData.deleteNilai(AppData.currentNim, idKelas);
   }
 
   Nilai? riwayatMataKuliah(String kodeMataKuliah) {
     try {
       return AppData.daftarNilai.firstWhere(
-        (nilai) => nilai.nim == AppData.currentNim && nilai.kodeMataKuliah == kodeMataKuliah,
+        (nilai) =>
+            nilai.nim == AppData.currentNim &&
+            nilai.kodeMataKuliah == kodeMataKuliah,
       );
     } catch (_) {
       return null;
@@ -226,6 +235,7 @@ class AkademikService {
     );
     for (var nilai in draftNilai) {
       nilai.statusKrs = 'pending';
+      AppData.updateNilai(nilai);
     }
 
     if (draftNilai.isNotEmpty) {
@@ -237,7 +247,8 @@ class AkademikService {
           AppNotification(
             id: DateTime.now().millisecondsSinceEpoch.toString(),
             title: 'Permintaan Validasi KRS',
-            message: 'Mahasiswa ${mahasiswa.namaLengkap} (${mahasiswa.nim}) meminta validasi KRS.',
+            message:
+                'Mahasiswa ${mahasiswa.namaLengkap} (${mahasiswa.nim}) meminta validasi KRS.',
             timestamp: DateTime.now(),
             type: NotificationType.validation,
             actionRoute: '/validasi_krs',
@@ -285,7 +296,9 @@ class AkademikService {
   }
 
   List<Nilai> pengajuanKrsDosenAktif() {
-    final bimbinganNim = mahasiswaBimbinganDosenAktif().map((m) => m.nim).toSet();
+    final bimbinganNim = mahasiswaBimbinganDosenAktif()
+        .map((m) => m.nim)
+        .toSet();
     return AppData.daftarNilai
         .where((n) => bimbinganNim.contains(n.nim) && n.statusKrs == 'pending')
         .toList();
@@ -293,6 +306,7 @@ class AkademikService {
 
   void tolakKrs(Nilai nilai) {
     nilai.statusKrs = 'draft';
+    AppData.updateNilai(nilai);
   }
 
   void tolakKrsMhs(String nim, String alasan) {
@@ -301,18 +315,22 @@ class AkademikService {
     );
     for (var n in pendingKrs) {
       n.statusKrs = 'draft';
+      AppData.updateNilai(n);
     }
     try {
       final mhs = AppData.daftarMahasiswa.firstWhere((m) => m.nim == nim);
       mhs.catatanKrs = alasan;
+      AppData.updateMahasiswa(nim, mhs);
     } catch (_) {}
   }
 
   void validasiKrs(Nilai nilai) {
     nilai.statusKrs = 'valid';
+    AppData.updateNilai(nilai);
     try {
       final mhs = AppData.daftarMahasiswa.firstWhere((m) => m.nim == nilai.nim);
       mhs.catatanKrs = null;
+      AppData.updateMahasiswa(nilai.nim, mhs);
     } catch (_) {}
   }
 
@@ -326,7 +344,16 @@ class AkademikService {
 
   /// Konversi DateTime.weekday (1=Senin…7=Minggu) ke nama hari Indonesia
   String namaHariDari(DateTime tanggal) {
-    const namaHari = ['', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu', 'Minggu'];
+    const namaHari = [
+      '',
+      'Senin',
+      'Selasa',
+      'Rabu',
+      'Kamis',
+      'Jumat',
+      'Sabtu',
+      'Minggu',
+    ];
     return namaHari[tanggal.weekday];
   }
 

@@ -3,7 +3,6 @@ import '../data/app_data.dart';
 import '../theme/app_colors.dart';
 import '../widgets/cyber_scaffold.dart';
 import '../widgets/cyber_widgets.dart';
-import 'presensi_page.dart';
 
 class PimpinanProdiPage extends StatefulWidget {
   const PimpinanProdiPage({super.key});
@@ -15,43 +14,49 @@ class PimpinanProdiPage extends StatefulWidget {
 class _PimpinanProdiPageState extends State<PimpinanProdiPage> {
   int _selectedIndex = 0;
   String _searchQuery = '';
-  String? _selectedSemesterId;
 
   List<SidebarItem> get _sidebarItems => const [
         SidebarItem(icon: Icons.dashboard_rounded, label: 'Dashboard'),
-        SidebarItem(icon: Icons.school_rounded, label: 'Mahasiswa Prodi'),
-        SidebarItem(icon: Icons.people_alt_rounded, label: 'Dosen Prodi'),
-        SidebarItem(icon: Icons.fingerprint_rounded, label: 'Presensi Kuliah'),
+        SidebarItem(icon: Icons.school_rounded, label: 'Data Mahasiswa'),
+        SidebarItem(icon: Icons.people_alt_rounded, label: 'Data Dosen'),
+        SidebarItem(icon: Icons.library_books_rounded, label: 'Mata Kuliah'),
+        SidebarItem(icon: Icons.class_rounded, label: 'Kelas Kuliah'),
+        SidebarItem(icon: Icons.room_rounded, label: 'Ruangan'),
+        SidebarItem(icon: Icons.person_pin_rounded, label: 'Dosen Pengajar'),
+        SidebarItem(icon: Icons.calendar_today_rounded, label: 'Jadwal Kuliah'),
+        SidebarItem(icon: Icons.date_range_rounded, label: 'Jadwal KRS'),
+        SidebarItem(icon: Icons.fact_check_rounded, label: 'Data KRS'),
+        SidebarItem(icon: Icons.how_to_reg_rounded, label: 'Presensi Mahasiswa'),
+        SidebarItem(icon: Icons.co_present_rounded, label: 'Presensi Dosen'),
+        SidebarItem(icon: Icons.assessment_rounded, label: 'Laporan Akademik'),
       ];
 
   List<String> get _breadcrumbs {
-    final prodiSingkatan = AppData.daftarProdi
-        .firstWhere((p) => p.kodeProdi == AppData.currentAdminProdiKode,
-            orElse: () => AppData.daftarProdi.first)
-        .aliasProdi;
-
     switch (_selectedIndex) {
-      case 1:
-        return ['Kaprodi $prodiSingkatan', 'Mahasiswa'];
-      case 2:
-        return ['Kaprodi $prodiSingkatan', 'Dosen'];
-      case 3:
-        return ['Kaprodi $prodiSingkatan', 'Presensi Kuliah'];
-      default:
-        return ['Kaprodi $prodiSingkatan', 'Dashboard'];
+      case 0: return ['Kaprodi', 'Dashboard'];
+      case 1: return ['Kaprodi', 'Data Mahasiswa'];
+      case 2: return ['Kaprodi', 'Data Dosen'];
+      case 3: return ['Kaprodi', 'Mata Kuliah'];
+      case 4: return ['Kaprodi', 'Kelas Kuliah'];
+      case 5: return ['Kaprodi', 'Ruangan'];
+      case 6: return ['Kaprodi', 'Dosen Pengajar'];
+      case 7: return ['Kaprodi', 'Jadwal Kuliah'];
+      case 8: return ['Kaprodi', 'Jadwal KRS'];
+      case 9: return ['Kaprodi', 'Data KRS'];
+      case 10: return ['Kaprodi', 'Presensi Mahasiswa'];
+      case 11: return ['Kaprodi', 'Presensi Dosen'];
+      case 12: return ['Kaprodi', 'Laporan Akademik'];
+      default: return ['Kaprodi', 'Dashboard'];
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    final kaprodiNama = AppData.currentAdminProdiNama;
-    final prodiSingkatan = AppData.daftarProdi
-        .firstWhere((p) => p.kodeProdi == AppData.currentAdminProdiKode,
-            orElse: () => AppData.daftarProdi.first)
-        .aliasProdi;
+    final prodiKode = AppData.currentAdminProdiKode;
+    final prodi = AppData.daftarProdi.firstWhere((p) => p.kodeProdi == prodiKode, orElse: () => AppData.daftarProdi.first);
 
     return CyberScaffold(
-      userName: '$kaprodiNama ($prodiSingkatan)',
+      userName: 'Dr. H. Kaprodi, M.T. (${prodi.aliasProdi})',
       userRole: 'pimpinan_prodi',
       sidebarItems: _sidebarItems,
       selectedIndex: _selectedIndex,
@@ -59,6 +64,7 @@ class _PimpinanProdiPageState extends State<PimpinanProdiPage> {
       onItemSelected: (index) {
         setState(() {
           _selectedIndex = index;
+          _searchQuery = ''; // Reset search query on tab change
         });
       },
       child: _buildContent(),
@@ -67,12 +73,32 @@ class _PimpinanProdiPageState extends State<PimpinanProdiPage> {
 
   Widget _buildContent() {
     switch (_selectedIndex) {
+      case 0:
+        return _buildDashboardContent();
       case 1:
         return _buildMahasiswaContent();
       case 2:
         return _buildDosenContent();
       case 3:
-        return const PresensiPage(role: 'pimpinan_prodi');
+        return _buildMataKuliahContent();
+      case 4:
+        return _buildKelasKuliahContent();
+      case 5:
+        return _buildRuanganContent();
+      case 6:
+        return _buildDosenPengajarContent();
+      case 7:
+        return _buildJadwalKuliahContent();
+      case 8:
+        return _buildJadwalKrsContent();
+      case 9:
+        return _buildDataKrsContent();
+      case 10:
+        return _buildPresensiMahasiswaContent();
+      case 11:
+        return _buildPresensiDosenContent();
+      case 12:
+        return _buildLaporanContent();
       default:
         return _buildDashboardContent();
     }
@@ -80,38 +106,19 @@ class _PimpinanProdiPageState extends State<PimpinanProdiPage> {
 
   Widget _buildDashboardContent() {
     final prodiKode = AppData.currentAdminProdiKode;
-    final prodi = AppData.daftarProdi.firstWhere((p) => p.kodeProdi == prodiKode,
-        orElse: () => AppData.daftarProdi.first);
 
-    // Get all students matching prodi filter
-    var students = AppData.daftarMahasiswa.where((m) => m.kodeProdi == prodiKode).toList();
+    final students = AppData.daftarMahasiswa.where((m) => m.kodeProdi == prodiKode).toList();
     final totalMhs = students.length;
     final aktifMhs = students.where((m) => m.isAktif).length;
     final tidakAktifMhs = totalMhs - aktifMhs;
 
-    // Get all dosen matching prodi filter
-    var dosens = AppData.daftarDosen.where((d) => d.kodeProdi == prodiKode).toList();
-    final totalDosen = dosens.length;
-
-    // Courses matching prodi filter
-    var courses = AppData.daftarMataKuliah.where((mk) => mk.kodeProdi == prodiKode).toList();
-    final totalMk = courses.length;
-
-    // Classes matching prodi filter
-    var classes = AppData.daftarKelas.where((k) => k.kodeProdi == prodiKode).toList();
+    final totalDosen = AppData.daftarDosen.where((d) => d.kodeProdi == prodiKode).length;
+    final totalMk = AppData.daftarMataKuliah.where((mk) => mk.kodeProdi == prodiKode).length;
+    final classes = AppData.daftarKelas.where((k) => k.kodeProdi == prodiKode).toList();
     final totalKelas = classes.length;
 
-    // KRS Stats based on students & semester
-    var krsList = AppData.daftarKrs;
     final studentNims = students.map((m) => m.nim).toSet();
-    krsList = krsList.where((k) => studentNims.contains(k.nim)).toList();
-    
-    if (_selectedSemesterId != null) {
-      krsList = krsList.where((k) {
-        final kelas = AppData.daftarKelas.firstWhere((c) => c.id == k.idKelasKuliah, orElse: () => AppData.daftarKelas.first);
-        return kelas.kodeProdi.contains(_selectedSemesterId!);
-      }).toList();
-    }
+    final krsList = AppData.daftarKrs.where((k) => studentNims.contains(k.nim)).toList();
     
     final draftKrs = krsList.where((k) => k.statusKrs == 'draft').length;
     final pendingKrs = krsList.where((k) => k.statusKrs == 'pending').length;
@@ -121,7 +128,6 @@ class _PimpinanProdiPageState extends State<PimpinanProdiPage> {
       return mhs.catatanKrs != null && k.statusKrs == 'draft';
     }).length;
 
-    // Presensi Stats
     final classIds = classes.map((c) => c.id).toSet();
     var meetings = AppData.daftarPertemuanKuliah.where((p) => classIds.contains(p.idKelasKuliah)).toList();
     final meetingIds = meetings.map((p) => p.id).toSet();
@@ -140,21 +146,19 @@ class _PimpinanProdiPageState extends State<PimpinanProdiPage> {
     final presentDosenCount = dosenPresences.where((pd) => pd.status == 'Hadir').length;
     final double presencePercentageDosen = totalDosenPresences > 0 ? (presentDosenCount / totalDosenPresences) : 1.0;
 
-    // Active Jadwal KRS
     final activeJadwal = AppData.daftarJadwalKrs.firstWhere((j) => j.status == 'Aktif', orElse: () => AppData.daftarJadwalKrs.first);
 
-    // Hitung jumlah mahasiswa bimbingan per dosen
-    final chartValues = dosens.map((d) {
-      final count = students.where((m) => m.dosenPembimbingNidn == d.nidn).length;
+    final chartValues = AppData.daftarDosen.where((d) => d.kodeProdi == prodiKode).map((dosen) {
+      final count = AppData.daftarMahasiswa.where((m) => m.dosenPembimbingNidn == dosen.nidn).length;
       final colors = [
         const Color(0xFF3B82F6),
         const Color(0xFF10B981),
         const Color(0xFFF59E0B),
         const Color(0xFFEC4899),
       ];
-      final color = colors[dosens.indexOf(d) % colors.length];
+      final color = colors[AppData.daftarDosen.indexOf(dosen) % colors.length];
       return ChartValue(
-        label: d.nama.split(' ').first,
+        label: dosen.nama.split(',')[0], // Short name
         value: count.toDouble(),
         color: color,
       );
@@ -164,67 +168,20 @@ class _PimpinanProdiPageState extends State<PimpinanProdiPage> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          CyberHeader(
-            tag: 'Program Studi ${prodi.aliasProdi}',
-            title: 'Dashboard Pimpinan Program Studi',
-            subtitle: 'Ringkasan analitik real-time terhadap mahasiswa, status KRS, presensi kelas, dan jadwal program studi ${prodi.namaProdi}.',
+          const CyberHeader(
+            tag: 'ANALITIKA PRODI',
+            title: 'Sistem Informasi Kaprodi',
+            subtitle: 'Pemantauan analitik real-time terhadap kinerja akademik program studi Anda.',
             icon: Icons.analytics_rounded,
-          ),
-          const SizedBox(height: 16),
-
-          // FILTERS ROW
-          CyberPanel(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-            child: Row(
-              children: [
-                const Icon(Icons.filter_alt_rounded, color: AppColors.primary, size: 20),
-                const SizedBox(width: 8),
-                const Text('Filter Dashboard:', style: TextStyle(fontWeight: FontWeight.bold)),
-                const SizedBox(width: 24),
-                // Locked Prodi View indicator
-                Expanded(
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-                    decoration: BoxDecoration(
-                      color: AppColors.bg,
-                      borderRadius: BorderRadius.circular(8),
-                      border: Border.all(color: AppColors.border),
-                    ),
-                    child: Text(
-                      'Prodi: ${prodi.namaProdi} (Kunci)',
-                      style: const TextStyle(color: AppColors.primary, fontWeight: FontWeight.bold, fontSize: 13),
-                    ),
-                  ),
-                ),
-                const SizedBox(width: 16),
-                // Semester filter
-                Expanded(
-                  child: DropdownButtonFormField<String>(
-                    value: _selectedSemesterId,
-                    decoration: const InputDecoration(labelText: 'Tahun Akademik / Semester', contentPadding: EdgeInsets.symmetric(horizontal: 10, vertical: 8)),
-                    items: const [
-                      DropdownMenuItem(value: null, child: Text('Semua Semester')),
-                      DropdownMenuItem(value: 'ILKOM', child: Text('2024/2025 - Ganjil')),
-                    ],
-                    onChanged: (val) {
-                      setState(() {
-                        _selectedSemesterId = val;
-                      });
-                    },
-                  ),
-                ),
-              ],
-            ),
           ),
           const SizedBox(height: 20),
 
-          // GENERAL STATISTICS CARDS
           Row(
             children: [
               Expanded(
                 child: StatTile(
                   value: '$totalMhs',
-                  label: 'Total Mahasiswa',
+                  label: 'Mahasiswa Prodi',
                   color: AppColors.primary,
                   icon: Icons.school_rounded,
                   progress: 1.0,
@@ -234,9 +191,9 @@ class _PimpinanProdiPageState extends State<PimpinanProdiPage> {
               Expanded(
                 child: StatTile(
                   value: '$totalDosen',
-                  label: 'Total Dosen',
+                  label: 'Dosen Prodi',
                   color: Colors.orange,
-                  icon: Icons.person_search_rounded,
+                  icon: Icons.people_alt_rounded,
                   progress: 1.0,
                 ),
               ),
@@ -264,11 +221,9 @@ class _PimpinanProdiPageState extends State<PimpinanProdiPage> {
           ),
           const SizedBox(height: 16),
 
-          // KRS STATISTICS & JADWAL KRS Row
           Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // KRS Statistics
               Expanded(
                 flex: 5,
                 child: CyberPanel(
@@ -344,7 +299,6 @@ class _PimpinanProdiPageState extends State<PimpinanProdiPage> {
                 ),
               ),
               const SizedBox(width: 16),
-              // Jadwal KRS Status
               Expanded(
                 flex: 4,
                 child: CyberPanel(
@@ -398,76 +352,35 @@ class _PimpinanProdiPageState extends State<PimpinanProdiPage> {
           ),
           const SizedBox(height: 16),
 
-          // PRESENSI STATISTICS
           CyberPanel(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 const Text('Analitik Kehadiran Perkuliahan (Presensi)', style: TextStyle(color: AppColors.textPrimary, fontWeight: FontWeight.bold, fontSize: 15)),
-                const SizedBox(height: 16),
+                const SizedBox(height: 14),
                 Row(
                   children: [
-                    // Average student presence
-                    Expanded(
-                      flex: 2,
-                      child: Row(
-                        children: [
-                          SizedBox(
-                            width: 60,
-                            height: 60,
-                            child: CircularProgressIndicator(
-                              value: presencePercentageStud,
-                              strokeWidth: 5,
-                              color: AppColors.success,
-                              backgroundColor: AppColors.success.withValues(alpha: 0.1),
-                            ),
-                          ),
-                          const SizedBox(width: 12),
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                const Text('Presensi Mahasiswa', style: TextStyle(color: AppColors.textSecondary, fontSize: 11, fontWeight: FontWeight.bold)),
-                                Text('${(presencePercentageStud * 100).toInt()}% Rata-rata', style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: AppColors.success)),
-                              ],
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                    const SizedBox(width: 16),
-                    // Average Dosen presence
-                    Expanded(
-                      flex: 2,
-                      child: Row(
-                        children: [
-                          SizedBox(
-                            width: 60,
-                            height: 60,
-                            child: CircularProgressIndicator(
-                              value: presencePercentageDosen,
-                              strokeWidth: 5,
-                              color: AppColors.primary,
-                              backgroundColor: AppColors.primary.withValues(alpha: 0.1),
-                            ),
-                          ),
-                          const SizedBox(width: 12),
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                const Text('Presensi Dosen', style: TextStyle(color: AppColors.textSecondary, fontSize: 11, fontWeight: FontWeight.bold)),
-                                Text('${(presencePercentageDosen * 100).toInt()}% Kehadiran', style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: AppColors.primary)),
-                              ],
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                    const SizedBox(width: 24),
-                    // Attendance counts
                     Expanded(
                       flex: 3,
+                      child: Column(
+                        children: [
+                          _AttendanceBar(
+                            label: 'Presensi Mahasiswa',
+                            percent: presencePercentageStud,
+                            color: AppColors.success,
+                          ),
+                          const SizedBox(height: 10),
+                          _AttendanceBar(
+                            label: 'Presensi Dosen',
+                            percent: presencePercentageDosen,
+                            color: AppColors.primary,
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(width: 20),
+                    Expanded(
+                      flex: 2,
                       child: Row(
                         children: [
                           Expanded(child: _MiniStatusStat('Hadir', '$presentStudCount', AppColors.success)),
@@ -487,7 +400,6 @@ class _PimpinanProdiPageState extends State<PimpinanProdiPage> {
           ),
           const SizedBox(height: 16),
 
-          // Sebara bimbingan per dosen
           Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -568,29 +480,7 @@ class _PimpinanProdiPageState extends State<PimpinanProdiPage> {
           icon: Icons.school_rounded,
         ),
         const SizedBox(height: 20),
-        TextField(
-          style: const TextStyle(color: AppColors.textPrimary),
-          decoration: InputDecoration(
-            hintText: 'Cari nama atau NIM mahasiswa...',
-            hintStyle: const TextStyle(color: AppColors.grey),
-            prefixIcon: const Icon(Icons.search, color: AppColors.primary),
-            filled: true,
-            fillColor: AppColors.surface,
-            enabledBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(12),
-              borderSide: const BorderSide(color: AppColors.border),
-            ),
-            focusedBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(12),
-              borderSide: const BorderSide(color: AppColors.primary),
-            ),
-          ),
-          onChanged: (val) {
-            setState(() {
-              _searchQuery = val;
-            });
-          },
-        ),
+        _buildSearchField('Cari nama atau NIM mahasiswa...'),
         const SizedBox(height: 16),
         Expanded(
           child: filtered.isEmpty
@@ -685,7 +575,11 @@ class _PimpinanProdiPageState extends State<PimpinanProdiPage> {
 
   Widget _buildDosenContent() {
     final prodiKode = AppData.currentAdminProdiKode;
-    final dosenProdi = AppData.daftarDosen.where((d) => d.kodeProdi == prodiKode).toList();
+    final filtered = AppData.daftarDosen.where((d) {
+      if (d.kodeProdi != prodiKode) return false;
+      final q = _searchQuery.toLowerCase();
+      return d.nama.toLowerCase().contains(q) || d.nidn.toLowerCase().contains(q);
+    }).toList();
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -697,8 +591,10 @@ class _PimpinanProdiPageState extends State<PimpinanProdiPage> {
           icon: Icons.people_alt_rounded,
         ),
         const SizedBox(height: 20),
+        _buildSearchField('Cari nama atau NIDN dosen...'),
+        const SizedBox(height: 16),
         Expanded(
-          child: dosenProdi.isEmpty
+          child: filtered.isEmpty
               ? const Center(
                   child: Text(
                     'Belum ada dosen wali terdaftar di program studi ini',
@@ -706,9 +602,9 @@ class _PimpinanProdiPageState extends State<PimpinanProdiPage> {
                   ),
                 )
               : ListView.builder(
-                  itemCount: dosenProdi.length,
+                  itemCount: filtered.length,
                   itemBuilder: (context, index) {
-                    final d = dosenProdi[index];
+                    final d = filtered[index];
                     final bimbinganCount = AppData.daftarMahasiswa.where((m) => m.dosenPembimbingNidn == d.nidn).length;
 
                     return Padding(
@@ -758,16 +654,952 @@ class _PimpinanProdiPageState extends State<PimpinanProdiPage> {
     );
   }
 
+  Widget _buildMataKuliahContent() {
+    final prodiKode = AppData.currentAdminProdiKode;
+    final list = AppData.daftarMataKuliah.where((mk) => mk.kodeProdi == prodiKode).toList();
+    final filtered = list.where((mk) {
+      final q = _searchQuery.toLowerCase();
+      return mk.namaMataKuliah.toLowerCase().contains(q) || mk.kodeMataKuliah.toLowerCase().contains(q);
+    }).toList();
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const CyberHeader(
+          tag: 'Database',
+          title: 'Mata Kuliah Program Studi',
+          subtitle: 'Daftar kurikulum mata kuliah aktif di program studi Anda.',
+          icon: Icons.library_books_rounded,
+        ),
+        const SizedBox(height: 20),
+        _buildSearchField('Cari kode atau nama mata kuliah...'),
+        const SizedBox(height: 16),
+        Expanded(
+          child: filtered.isEmpty
+              ? const Center(child: Text('Tidak ada mata kuliah', style: TextStyle(color: AppColors.textSecondary)))
+              : ListView.builder(
+                  itemCount: filtered.length,
+                  itemBuilder: (context, index) {
+                    final mk = filtered[index];
+                    return Padding(
+                      padding: const EdgeInsets.only(bottom: 10),
+                      child: CyberPanel(
+                        padding: const EdgeInsets.all(16),
+                        child: Row(
+                          children: [
+                            CircleAvatar(
+                              backgroundColor: AppColors.primary.withValues(alpha: 0.1),
+                              child: const Icon(Icons.book, color: AppColors.primary),
+                            ),
+                            const SizedBox(width: 16),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    mk.namaMataKuliah,
+                                    style: const TextStyle(color: AppColors.textPrimary, fontWeight: FontWeight.bold, fontSize: 15),
+                                  ),
+                                  const SizedBox(height: 4),
+                                  Text(
+                                    'Kode: ${mk.kodeMataKuliah} • SKS: ${mk.jumlahSks}',
+                                    style: const TextStyle(color: AppColors.textSecondary, fontSize: 13),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    );
+                  },
+                ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildKelasKuliahContent() {
+    final prodiKode = AppData.currentAdminProdiKode;
+    final list = AppData.daftarKelas.where((k) => k.kodeProdi == prodiKode).toList();
+    final filtered = list.where((k) {
+      final mk = AppData.daftarMataKuliah.firstWhere((m) => m.kodeMataKuliah == k.kodeMataKuliah, orElse: () => AppData.daftarMataKuliah.first);
+      final q = _searchQuery.toLowerCase();
+      return k.namaKelas.toLowerCase().contains(q) || mk.namaMataKuliah.toLowerCase().contains(q) || k.dosenPengampu.toLowerCase().contains(q);
+    }).toList();
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const CyberHeader(
+          tag: 'Database',
+          title: 'Kelas Kuliah Prodi',
+          subtitle: 'Daftar seluruh kelas aktif beserta dosen pengampu program studi Anda.',
+          icon: Icons.class_rounded,
+        ),
+        const SizedBox(height: 20),
+        _buildSearchField('Cari kelas, mata kuliah, atau dosen...'),
+        const SizedBox(height: 16),
+        Expanded(
+          child: filtered.isEmpty
+              ? const Center(child: Text('Tidak ada kelas kuliah', style: TextStyle(color: AppColors.textSecondary)))
+              : ListView.builder(
+                  itemCount: filtered.length,
+                  itemBuilder: (context, index) {
+                    final kelas = filtered[index];
+                    final mk = AppData.daftarMataKuliah.firstWhere((m) => m.kodeMataKuliah == kelas.kodeMataKuliah, orElse: () => AppData.daftarMataKuliah.first);
+                    return Padding(
+                      padding: const EdgeInsets.only(bottom: 10),
+                      child: CyberPanel(
+                        padding: const EdgeInsets.all(16),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Text(
+                                  'Kelas ${kelas.namaKelas} (${kelas.id})',
+                                  style: const TextStyle(color: AppColors.primary, fontWeight: FontWeight.bold, fontSize: 16),
+                                ),
+                              ],
+                            ),
+                            const SizedBox(height: 8),
+                            Text(
+                              mk.namaMataKuliah,
+                              style: const TextStyle(color: AppColors.textPrimary, fontWeight: FontWeight.bold, fontSize: 14),
+                            ),
+                            const SizedBox(height: 4),
+                            Text(
+                              'Dosen: ${kelas.dosenPengampu}',
+                              style: const TextStyle(color: AppColors.textSecondary, fontSize: 13),
+                            ),
+                            Text(
+                              'Jadwal: ${kelas.hari}, ${kelas.jamMulai} - ${kelas.jamSelesai} (Ruang ${kelas.ruangan})',
+                              style: const TextStyle(color: AppColors.grey, fontSize: 12),
+                            ),
+                            Text(
+                              'Kapasitas: ${kelas.kapasitas} Mahasiswa',
+                              style: const TextStyle(color: AppColors.grey, fontSize: 12),
+                            ),
+                          ],
+                        ),
+                      ),
+                    );
+                  },
+                ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildRuanganContent() {
+    final list = AppData.daftarRuangan;
+    final filtered = list.where((r) {
+      final q = _searchQuery.toLowerCase();
+      return r.kodeRuangan.toLowerCase().contains(q) || r.namaRuangan.toLowerCase().contains(q);
+    }).toList();
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const CyberHeader(
+          tag: 'Database',
+          title: 'Informasi Ruangan',
+          subtitle: 'Kapasitas dan status ruangan kelas.',
+          icon: Icons.room_rounded,
+        ),
+        const SizedBox(height: 20),
+        _buildSearchField('Cari kode atau nama ruangan...'),
+        const SizedBox(height: 16),
+        Expanded(
+          child: filtered.isEmpty
+              ? const Center(child: Text('Tidak ada ruangan', style: TextStyle(color: AppColors.textSecondary)))
+              : GridView.builder(
+                  gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                    crossAxisCount: 2,
+                    childAspectRatio: 2.2,
+                    crossAxisSpacing: 12,
+                    mainAxisSpacing: 12,
+                  ),
+                  itemCount: filtered.length,
+                  itemBuilder: (context, index) {
+                    final r = filtered[index];
+                    return CyberPanel(
+                      padding: const EdgeInsets.all(16),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Row(
+                            children: [
+                              const Icon(Icons.meeting_room, color: AppColors.primary, size: 20),
+                              const SizedBox(width: 8),
+                              Expanded(
+                                child: Text(
+                                  r.namaRuangan,
+                                  style: const TextStyle(color: AppColors.textPrimary, fontWeight: FontWeight.bold, fontSize: 15),
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 8),
+                          Text('Kode: ${r.kodeRuangan}', style: const TextStyle(color: AppColors.textSecondary, fontSize: 12)),
+                          Text('Kapasitas: ${r.kapasitasRuangan} Kursi', style: const TextStyle(color: AppColors.grey, fontSize: 12)),
+                        ],
+                      ),
+                    );
+                  },
+                ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildDosenPengajarContent() {
+    final prodiKode = AppData.currentAdminProdiKode;
+    final list = AppData.daftarDosenPengajar.where((dp) {
+      final dosen = AppData.daftarDosen.firstWhere((d) => d.nidn == dp.nidnDosen, orElse: () => AppData.daftarDosen.first);
+      return dosen.kodeProdi == prodiKode;
+    }).toList();
+    
+    final filtered = list.where((dp) {
+      final dosen = AppData.daftarDosen.firstWhere((d) => d.nidn == dp.nidnDosen, orElse: () => AppData.daftarDosen.first);
+      final kelas = AppData.daftarKelas.firstWhere((k) => k.id == dp.idKelas, orElse: () => AppData.daftarKelas.first);
+      final q = _searchQuery.toLowerCase();
+      return dosen.nama.toLowerCase().contains(q) || dp.nidnDosen.toLowerCase().contains(q) || kelas.namaKelas.toLowerCase().contains(q);
+    }).toList();
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const CyberHeader(
+          tag: 'Database',
+          title: 'Dosen Pengajar Kelas',
+          subtitle: 'Daftar pembagian pengajar kelas di program studi.',
+          icon: Icons.person_pin_rounded,
+        ),
+        const SizedBox(height: 20),
+        _buildSearchField('Cari nama dosen, NIDN, atau kelas...'),
+        const SizedBox(height: 16),
+        Expanded(
+          child: filtered.isEmpty
+              ? const Center(child: Text('Tidak ada data dosen pengajar', style: TextStyle(color: AppColors.textSecondary)))
+              : ListView.builder(
+                  itemCount: filtered.length,
+                  itemBuilder: (context, index) {
+                    final dp = filtered[index];
+                    final dosen = AppData.daftarDosen.firstWhere((d) => d.nidn == dp.nidnDosen, orElse: () => AppData.daftarDosen.first);
+                    final kelas = AppData.daftarKelas.firstWhere((k) => k.id == dp.idKelas, orElse: () => AppData.daftarKelas.first);
+                    final mk = AppData.daftarMataKuliah.firstWhere((m) => m.kodeMataKuliah == kelas.kodeMataKuliah, orElse: () => AppData.daftarMataKuliah.first);
+                    return Padding(
+                      padding: const EdgeInsets.only(bottom: 10),
+                      child: CyberPanel(
+                        padding: const EdgeInsets.all(16),
+                        child: Row(
+                          children: [
+                            CircleAvatar(
+                              backgroundColor: Colors.orange.withValues(alpha: 0.1),
+                              child: const Icon(Icons.assignment_ind, color: Colors.orange),
+                            ),
+                            const SizedBox(width: 16),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    dosen.nama,
+                                    style: const TextStyle(color: AppColors.textPrimary, fontWeight: FontWeight.bold, fontSize: 15),
+                                  ),
+                                  const SizedBox(height: 4),
+                                  Text(
+                                    'Kelas: ${kelas.namaKelas} • MK: ${mk.namaMataKuliah} (${mk.kodeMataKuliah})',
+                                    style: const TextStyle(color: AppColors.textSecondary, fontSize: 13),
+                                  ),
+                                  Text(
+                                    'Peran: ${dp.peranMengajar} • NIDN: ${dosen.nidn}',
+                                    style: const TextStyle(color: AppColors.grey, fontSize: 12),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    );
+                  },
+                ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildJadwalKuliahContent() {
+    final prodiKode = AppData.currentAdminProdiKode;
+    final list = AppData.daftarKelas.where((k) => k.kodeProdi == prodiKode).toList();
+    final filtered = list.where((k) {
+      final mk = AppData.daftarMataKuliah.firstWhere((m) => m.kodeMataKuliah == k.kodeMataKuliah, orElse: () => AppData.daftarMataKuliah.first);
+      final q = _searchQuery.toLowerCase();
+      return k.hari.toLowerCase().contains(q) || mk.namaMataKuliah.toLowerCase().contains(q) || k.dosenPengampu.toLowerCase().contains(q);
+    }).toList();
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const CyberHeader(
+          tag: 'Database',
+          title: 'Jadwal Kuliah Program Studi',
+          subtitle: 'Jadwal pelaksanaan kuliah harian mahasiswa prodi.',
+          icon: Icons.calendar_today_rounded,
+        ),
+        const SizedBox(height: 20),
+        _buildSearchField('Cari hari, mata kuliah, atau dosen...'),
+        const SizedBox(height: 16),
+        Expanded(
+          child: filtered.isEmpty
+              ? const Center(child: Text('Tidak ada jadwal kuliah', style: TextStyle(color: AppColors.textSecondary)))
+              : ListView.builder(
+                  itemCount: filtered.length,
+                  itemBuilder: (context, index) {
+                    final k = filtered[index];
+                    final mk = AppData.daftarMataKuliah.firstWhere((m) => m.kodeMataKuliah == k.kodeMataKuliah, orElse: () => AppData.daftarMataKuliah.first);
+                    return Padding(
+                      padding: const EdgeInsets.only(bottom: 10),
+                      child: CyberPanel(
+                        padding: const EdgeInsets.all(16),
+                        child: Row(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                              decoration: BoxDecoration(
+                                color: AppColors.primary.withValues(alpha: 0.1),
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                              child: Column(
+                                children: [
+                                  Text(k.hari, style: const TextStyle(color: AppColors.primary, fontWeight: FontWeight.bold, fontSize: 14)),
+                                  const SizedBox(height: 4),
+                                  Text(k.jamMulai, style: const TextStyle(color: AppColors.textSecondary, fontSize: 11)),
+                                ],
+                              ),
+                            ),
+                            const SizedBox(width: 16),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    mk.namaMataKuliah,
+                                    style: const TextStyle(color: AppColors.textPrimary, fontWeight: FontWeight.bold, fontSize: 15),
+                                  ),
+                                  const SizedBox(height: 4),
+                                  Text(
+                                    'Kelas ${k.namaKelas} • Ruang ${k.ruangan}',
+                                    style: const TextStyle(color: AppColors.textSecondary, fontSize: 13),
+                                  ),
+                                  Text(
+                                    'Dosen: ${k.dosenPengampu}',
+                                    style: const TextStyle(color: AppColors.grey, fontSize: 12),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    );
+                  },
+                ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildJadwalKrsContent() {
+    final list = AppData.daftarJadwalKrs;
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const CyberHeader(
+          tag: 'Database',
+          title: 'Periode Jadwal KRS',
+          subtitle: 'Periode pengisian kartu rencana studi mahasiswa.',
+          icon: Icons.date_range_rounded,
+        ),
+        const SizedBox(height: 20),
+        Expanded(
+          child: list.isEmpty
+              ? const Center(child: Text('Tidak ada jadwal KRS', style: TextStyle(color: AppColors.textSecondary)))
+              : ListView.builder(
+                  itemCount: list.length,
+                  itemBuilder: (context, index) {
+                    final j = list[index];
+                    final isAktif = j.status == 'Aktif';
+                    return Padding(
+                      padding: const EdgeInsets.only(bottom: 10),
+                      child: CyberPanel(
+                        padding: const EdgeInsets.all(16),
+                        child: Row(
+                          children: [
+                            CircleAvatar(
+                              backgroundColor: (isAktif ? AppColors.success : AppColors.error).withValues(alpha: 0.1),
+                              child: Icon(Icons.date_range, color: isAktif ? AppColors.success : AppColors.error),
+                            ),
+                            const SizedBox(width: 16),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Row(
+                                    children: [
+                                      Text(
+                                        'Tahun Akademik: ${j.tahunAkademik}',
+                                        style: const TextStyle(color: AppColors.textPrimary, fontWeight: FontWeight.bold, fontSize: 15),
+                                      ),
+                                      const SizedBox(width: 8),
+                                      Container(
+                                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                                        decoration: BoxDecoration(
+                                          color: (isAktif ? AppColors.success : AppColors.error).withValues(alpha: 0.1),
+                                          borderRadius: BorderRadius.circular(8),
+                                        ),
+                                        child: Text(
+                                          j.status,
+                                          style: TextStyle(color: isAktif ? AppColors.success : AppColors.error, fontSize: 10, fontWeight: FontWeight.bold),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                  const SizedBox(height: 4),
+                                  Text(
+                                    'Semester: ${j.semester} • Periode: ${j.tanggalMulai.day}/${j.tanggalMulai.month}/${j.tanggalMulai.year} - ${j.tanggalSelesai.day}/${j.tanggalSelesai.month}/${j.tanggalSelesai.year}',
+                                    style: const TextStyle(color: AppColors.textSecondary, fontSize: 13),
+                                  ),
+                                  Text(
+                                    'Sisa Waktu: ${j.sisaHari} Hari',
+                                    style: const TextStyle(color: AppColors.grey, fontSize: 12),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    );
+                  },
+                ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildDataKrsContent() {
+    final prodiKode = AppData.currentAdminProdiKode;
+    var students = AppData.daftarMahasiswa.where((m) => m.kodeProdi == prodiKode).toList();
+    final filtered = students.where((m) {
+      final q = _searchQuery.toLowerCase();
+      return m.namaLengkap.toLowerCase().contains(q) || m.nim.toLowerCase().contains(q);
+    }).toList();
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const CyberHeader(
+          tag: 'Database',
+          title: 'Status KRS Mahasiswa',
+          subtitle: 'Daftar pengajuan KRS mahasiswa beserta status validasi pembimbing akademik.',
+          icon: Icons.fact_check_rounded,
+        ),
+        const SizedBox(height: 20),
+        _buildSearchField('Cari nama atau NIM mahasiswa...'),
+        const SizedBox(height: 16),
+        Expanded(
+          child: filtered.isEmpty
+              ? const Center(child: Text('Tidak ada mahasiswa', style: TextStyle(color: AppColors.textSecondary)))
+              : ListView.builder(
+                  itemCount: filtered.length,
+                  itemBuilder: (context, index) {
+                    final mhs = filtered[index];
+                    final krs = AppData.daftarKrs.where((k) => k.nim == mhs.nim).toList();
+                    
+                    String overallStatus = 'Belum Mengajukan';
+                    Color statusColor = AppColors.grey;
+                    if (krs.isNotEmpty) {
+                      final allValid = krs.every((k) => k.statusKrs == 'valid');
+                      final hasPending = krs.any((k) => k.statusKrs == 'pending');
+                      if (allValid) {
+                        overallStatus = 'Approved';
+                        statusColor = AppColors.success;
+                      } else if (hasPending) {
+                        overallStatus = 'Pending';
+                        statusColor = Colors.orange;
+                      } else {
+                        overallStatus = 'Draft / Rejected';
+                        statusColor = AppColors.error;
+                      }
+                    }
+
+                    return Padding(
+                      padding: const EdgeInsets.only(bottom: 10),
+                      child: CyberPanel(
+                        padding: const EdgeInsets.all(16),
+                        child: ExpansionTile(
+                          shape: const RoundedRectangleBorder(side: BorderSide.none),
+                          title: Row(
+                            children: [
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(mhs.namaLengkap, style: const TextStyle(color: AppColors.textPrimary, fontWeight: FontWeight.bold)),
+                                    Text('NIM: ${mhs.nim}', style: const TextStyle(color: AppColors.textSecondary, fontSize: 12)),
+                                  ],
+                                ),
+                              ),
+                              Container(
+                                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                                decoration: BoxDecoration(
+                                  color: statusColor.withValues(alpha: 0.1),
+                                  borderRadius: BorderRadius.circular(6),
+                                ),
+                                child: Text(
+                                  overallStatus,
+                                  style: TextStyle(color: statusColor, fontSize: 11, fontWeight: FontWeight.bold),
+                                ),
+                              ),
+                            ],
+                          ),
+                          children: [
+                            Padding(
+                              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  if (krs.isEmpty)
+                                    const Text('Belum ada kelas yang dipilih.', style: TextStyle(color: AppColors.grey, fontSize: 13))
+                                  else ...[
+                                    const Text('Mata Kuliah Diambil:', style: TextStyle(color: AppColors.textPrimary, fontWeight: FontWeight.bold, fontSize: 13)),
+                                    const SizedBox(height: 6),
+                                    ...krs.map((k) {
+                                      final kelas = AppData.daftarKelas.firstWhere((c) => c.id == k.idKelasKuliah, orElse: () => AppData.daftarKelas.first);
+                                      final mk = AppData.daftarMataKuliah.firstWhere((m) => m.kodeMataKuliah == kelas.kodeMataKuliah, orElse: () => AppData.daftarMataKuliah.first);
+                                      return Padding(
+                                        padding: const EdgeInsets.symmetric(vertical: 2),
+                                        child: Row(
+                                          children: [
+                                            const Icon(Icons.circle, size: 6, color: AppColors.primary),
+                                            const SizedBox(width: 8),
+                                            Expanded(
+                                              child: Text(
+                                                '${mk.namaMataKuliah} (Kelas ${kelas.namaKelas}) - ${k.statusKrs.toUpperCase()}',
+                                                style: const TextStyle(color: AppColors.textSecondary, fontSize: 12),
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                      );
+                                    }),
+                                  ],
+                                  if (mhs.catatanKrs != null && mhs.catatanKrs!.isNotEmpty) ...[
+                                    const SizedBox(height: 8),
+                                    Text(
+                                      'Catatan Penolakan: ${mhs.catatanKrs}',
+                                      style: const TextStyle(color: AppColors.error, fontSize: 12, fontStyle: FontStyle.italic),
+                                    ),
+                                  ],
+                                ],
+                              ),
+                            )
+                          ],
+                        ),
+                      ),
+                    );
+                  },
+                ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildPresensiMahasiswaContent() {
+    final prodiKode = AppData.currentAdminProdiKode;
+    var students = AppData.daftarMahasiswa.where((m) => m.kodeProdi == prodiKode).toList();
+    final filtered = students.where((m) {
+      final q = _searchQuery.toLowerCase();
+      return m.namaLengkap.toLowerCase().contains(q) || m.nim.toLowerCase().contains(q);
+    }).toList();
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const CyberHeader(
+          tag: 'Presensi',
+          title: 'Rekap Presensi Mahasiswa',
+          subtitle: 'Persentase kehadiran dan status detil presensi mahasiswa prodi.',
+          icon: Icons.how_to_reg_rounded,
+        ),
+        const SizedBox(height: 20),
+        _buildSearchField('Cari nama atau NIM mahasiswa...'),
+        const SizedBox(height: 16),
+        Expanded(
+          child: filtered.isEmpty
+              ? const Center(child: Text('Tidak ada data presensi mahasiswa', style: TextStyle(color: AppColors.textSecondary)))
+              : ListView.builder(
+                  itemCount: filtered.length,
+                  itemBuilder: (context, index) {
+                    final mhs = filtered[index];
+                    
+                    final mhsPresences = AppData.daftarPresensiMahasiswa.where((p) => p.nim == mhs.nim).toList();
+                    final total = mhsPresences.length;
+                    final hadir = mhsPresences.where((p) => p.status == 'Hadir').length;
+                    final izin = mhsPresences.where((p) => p.status == 'Izin').length;
+                    final sakit = mhsPresences.where((p) => p.status == 'Sakit').length;
+                    final alfa = mhsPresences.where((p) => p.status == 'Alfa').length;
+                    
+                    final pct = total > 0 ? hadir / total : 0.0;
+
+                    return Padding(
+                      padding: const EdgeInsets.only(bottom: 10),
+                      child: CyberPanel(
+                        padding: const EdgeInsets.all(16),
+                        child: Row(
+                          children: [
+                            CircleAvatar(
+                              backgroundColor: AppColors.primary.withValues(alpha: 0.1),
+                              child: Text(mhs.namaLengkap[0], style: const TextStyle(color: AppColors.primary, fontWeight: FontWeight.bold)),
+                            ),
+                            const SizedBox(width: 16),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(mhs.namaLengkap, style: const TextStyle(color: AppColors.textPrimary, fontWeight: FontWeight.bold, fontSize: 14)),
+                                  Text('NIM: ${mhs.nim}', style: const TextStyle(color: AppColors.textSecondary, fontSize: 12)),
+                                  const SizedBox(height: 6),
+                                  Row(
+                                    children: [
+                                      _buildPresenceBadge('Hadir: $hadir', AppColors.success),
+                                      const SizedBox(width: 6),
+                                      _buildPresenceBadge('Izin: $izin', AppColors.primary),
+                                      const SizedBox(width: 6),
+                                      _buildPresenceBadge('Sakit: $sakit', AppColors.warning),
+                                      const SizedBox(width: 6),
+                                      _buildPresenceBadge('Alfa: $alfa', AppColors.error),
+                                    ],
+                                  ),
+                                ],
+                              ),
+                            ),
+                            const SizedBox(width: 12),
+                            Column(
+                              crossAxisAlignment: CrossAxisAlignment.end,
+                              children: [
+                                Text(
+                                  '${(pct * 100).toInt()}%',
+                                  style: TextStyle(
+                                    color: pct >= 0.8 ? AppColors.success : AppColors.error,
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 18,
+                                  ),
+                                ),
+                                const Text('Kehadiran', style: TextStyle(color: AppColors.textSecondary, fontSize: 10)),
+                              ],
+                            ),
+                          ],
+                        ),
+                      ),
+                    );
+                  },
+                ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildPresenceBadge(String label, Color color) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+      decoration: BoxDecoration(
+        color: color.withValues(alpha: 0.1),
+        borderRadius: BorderRadius.circular(6),
+      ),
+      child: Text(
+        label,
+        style: TextStyle(color: color, fontSize: 10, fontWeight: FontWeight.bold),
+      ),
+    );
+  }
+
+  Widget _buildPresensiDosenContent() {
+    final prodiKode = AppData.currentAdminProdiKode;
+    var dosens = AppData.daftarDosen.where((d) => d.kodeProdi == prodiKode).toList();
+    final filtered = dosens.where((d) {
+      final q = _searchQuery.toLowerCase();
+      return d.nama.toLowerCase().contains(q) || d.nidn.toLowerCase().contains(q);
+    }).toList();
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const CyberHeader(
+          tag: 'Presensi',
+          title: 'Rekap Kehadiran Dosen',
+          subtitle: 'Persentase mengajar dan status kehadiran dosen prodi.',
+          icon: Icons.co_present_rounded,
+        ),
+        const SizedBox(height: 20),
+        _buildSearchField('Cari nama atau NIDN dosen...'),
+        const SizedBox(height: 16),
+        Expanded(
+          child: filtered.isEmpty
+              ? const Center(child: Text('Tidak ada data presensi dosen', style: TextStyle(color: AppColors.textSecondary)))
+              : ListView.builder(
+                  itemCount: filtered.length,
+                  itemBuilder: (context, index) {
+                    final dosen = filtered[index];
+                    
+                    final dosenPresences = AppData.daftarPresensiDosen.where((p) => p.nidn == dosen.nidn).toList();
+                    final total = dosenPresences.length;
+                    final hadir = dosenPresences.where((p) => p.status == 'Hadir').length;
+                    final absen = total - hadir;
+                    final pct = total > 0 ? hadir / total : 0.0;
+
+                    return Padding(
+                      padding: const EdgeInsets.only(bottom: 10),
+                      child: CyberPanel(
+                        padding: const EdgeInsets.all(16),
+                        child: Row(
+                          children: [
+                            CircleAvatar(
+                              backgroundColor: Colors.orange.withValues(alpha: 0.1),
+                              child: const Icon(Icons.person, color: Colors.orange),
+                            ),
+                            const SizedBox(width: 16),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(dosen.nama, style: const TextStyle(color: AppColors.textPrimary, fontWeight: FontWeight.bold, fontSize: 14)),
+                                  Text('NIDN: ${dosen.nidn}', style: const TextStyle(color: AppColors.textSecondary, fontSize: 12)),
+                                  const SizedBox(height: 6),
+                                  Row(
+                                    children: [
+                                      _buildPresenceBadge('Sesi Mengajar: $total', AppColors.primary),
+                                      const SizedBox(width: 8),
+                                      _buildPresenceBadge('Hadir: $hadir', AppColors.success),
+                                      const SizedBox(width: 8),
+                                      _buildPresenceBadge('Absen: $absen', AppColors.error),
+                                    ],
+                                  ),
+                                ],
+                              ),
+                            ),
+                            const SizedBox(width: 12),
+                            Column(
+                              crossAxisAlignment: CrossAxisAlignment.end,
+                              children: [
+                                Text(
+                                  '${(pct * 100).toInt()}%',
+                                  style: TextStyle(
+                                    color: pct >= 0.8 ? AppColors.success : AppColors.error,
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 18,
+                                  ),
+                                ),
+                                const Text('Kehadiran', style: TextStyle(color: AppColors.textSecondary, fontSize: 10)),
+                              ],
+                            ),
+                          ],
+                        ),
+                      ),
+                    );
+                  },
+                ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildLaporanContent() {
+    final prodiKode = AppData.currentAdminProdiKode;
+    final totalMhs = AppData.daftarMahasiswa.where((m) => m.kodeProdi == prodiKode).length;
+    final totalDosen = AppData.daftarDosen.where((d) => d.kodeProdi == prodiKode).length;
+    final classes = AppData.daftarKelas.where((k) => k.kodeProdi == prodiKode).toList();
+    final totalKelas = classes.length;
+
+    final classIds = classes.map((c) => c.id).toSet();
+    final totalMeetings = AppData.daftarPertemuanKuliah.where((p) => classIds.contains(p.idKelasKuliah)).length;
+    final meetingIds = AppData.daftarPertemuanKuliah.where((p) => classIds.contains(p.idKelasKuliah)).map((p) => p.id).toSet();
+    
+    final mhsPres = AppData.daftarPresensiMahasiswa.where((p) => meetingIds.contains(p.idPertemuan)).toList();
+    final hadirPct = mhsPres.isEmpty ? 0.0 : mhsPres.where((p) => p.status == 'Hadir').length / mhsPres.length;
+    
+    final dosenPres = AppData.daftarPresensiDosen.where((p) => meetingIds.contains(p.idPertemuan)).toList();
+    final dosenHadirPct = dosenPres.isEmpty ? 0.0 : dosenPres.where((p) => p.status == 'Hadir').length / dosenPres.length;
+
+    return SingleChildScrollView(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const CyberHeader(
+            tag: 'Laporan',
+            title: 'Laporan Akademik & Presensi',
+            subtitle: 'Ringkasan formal kinerja akademik program studi Anda.',
+            icon: Icons.assessment_rounded,
+          ),
+          const SizedBox(height: 16),
+          CyberPanel(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(
+                      'LAPORAN EKSEKUTIF AKADEMIK PRODI',
+                      style: TextStyle(color: AppColors.primary, fontWeight: FontWeight.bold, fontSize: 16),
+                    ),
+                    Text('STATUS: FINAL', style: TextStyle(color: AppColors.success, fontWeight: FontWeight.bold, fontSize: 12)),
+                  ],
+                ),
+                const Divider(height: 24),
+                _buildReportRow('Total Mahasiswa Terdaftar', '$totalMhs Orang'),
+                _buildReportRow('Total Dosen Pengampu', '$totalDosen Orang'),
+                _buildReportRow('Total Kelas Perkuliahan', '$totalKelas Kelas'),
+                _buildReportRow('Total Sesi Pertemuan Kuliah', '$totalMeetings Sesi'),
+                const Divider(height: 24),
+                _buildReportRow('Persentase Kehadiran Rata-Rata Mahasiswa', '${(hadirPct * 100).toStringAsFixed(1)}%'),
+                _buildReportRow('Persentase Kehadiran Rata-Rata Dosen', '${(dosenHadirPct * 100).toStringAsFixed(1)}%'),
+                const Divider(height: 24),
+                const SizedBox(height: 8),
+                const Text(
+                  'Catatan Laporan:',
+                  style: TextStyle(color: AppColors.textPrimary, fontWeight: FontWeight.bold, fontSize: 13),
+                ),
+                const SizedBox(height: 6),
+                const Text(
+                  '1. Laporan ini di-generate secara real-time dari database akademik.\n'
+                  '2. Seluruh data di atas bersifat rahasia dan hanya dapat diakses oleh pemegang peran Pimpinan.',
+                  style: TextStyle(color: AppColors.textSecondary, fontSize: 12, height: 1.5),
+                ),
+                const SizedBox(height: 16),
+                SizedBox(
+                  width: double.infinity,
+                  child: ElevatedButton.icon(
+                    onPressed: () {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(content: Text('Laporan berhasil diunduh (Simulasi PDF)')),
+                      );
+                    },
+                    icon: const Icon(Icons.download),
+                    label: const Text('Unduh Laporan PDF'),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildReportRow(String label, String value) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 6),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Text(label, style: const TextStyle(color: AppColors.textSecondary, fontSize: 13)),
+          Text(value, style: const TextStyle(color: AppColors.textPrimary, fontWeight: FontWeight.bold, fontSize: 13)),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildSearchField(String hintText) {
+    return TextField(
+      style: const TextStyle(color: AppColors.textPrimary),
+      decoration: InputDecoration(
+        hintText: hintText,
+        hintStyle: const TextStyle(color: AppColors.grey),
+        prefixIcon: const Icon(Icons.search, color: AppColors.primary),
+        filled: true,
+        fillColor: AppColors.surface,
+        enabledBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: const BorderSide(color: AppColors.border),
+        ),
+        focusedBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: const BorderSide(color: AppColors.primary),
+        ),
+      ),
+      onChanged: (val) {
+        setState(() {
+          _searchQuery = val;
+        });
+      },
+    );
+  }
+
   Widget _MiniStatusStat(String label, String value, Color color) {
-    return CyberPanel(
-      padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 8),
+    return Container(
+      padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 6),
+      decoration: BoxDecoration(
+        color: color.withValues(alpha: 0.08),
+        borderRadius: BorderRadius.circular(8),
+        border: Border(bottom: BorderSide(color: color, width: 2)),
+      ),
       child: Column(
         children: [
-          Text(value, style: TextStyle(color: color, fontSize: 18, fontWeight: FontWeight.bold)),
+          Text(value, style: TextStyle(color: color, fontSize: 16, fontWeight: FontWeight.w900)),
           const SizedBox(height: 2),
           Text(label, style: const TextStyle(color: AppColors.textSecondary, fontSize: 10, fontWeight: FontWeight.bold)),
         ],
       ),
+    );
+  }
+}
+
+class _AttendanceBar extends StatelessWidget {
+  final String label;
+  final double percent;
+  final Color color;
+  const _AttendanceBar({required this.label, required this.percent, required this.color});
+
+  @override
+  Widget build(BuildContext context) {
+    final pct = (percent.clamp(0.0, 1.0) * 100).round();
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Text(label, style: const TextStyle(color: AppColors.textSecondary, fontSize: 12, fontWeight: FontWeight.w600)),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+              decoration: BoxDecoration(
+                color: color.withValues(alpha: 0.1),
+                borderRadius: BorderRadius.circular(4),
+              ),
+              child: Text('$pct%', style: TextStyle(color: color, fontSize: 11, fontWeight: FontWeight.w800)),
+            ),
+          ],
+        ),
+        const SizedBox(height: 5),
+        ClipRRect(
+          borderRadius: BorderRadius.circular(4),
+          child: LinearProgressIndicator(
+            value: percent.clamp(0.0, 1.0),
+            minHeight: 6,
+            color: color,
+            backgroundColor: color.withValues(alpha: 0.12),
+          ),
+        ),
+      ],
     );
   }
 }

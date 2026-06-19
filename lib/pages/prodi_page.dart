@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../data/app_data.dart';
 import '../models/prodi.dart';
+import '../services/prodi_service.dart';
 
 class ProdiPage extends StatefulWidget {
   const ProdiPage({super.key});
@@ -10,6 +11,8 @@ class ProdiPage extends StatefulWidget {
 }
 
 class _ProdiPageState extends State<ProdiPage> {
+  final ProdiService _prodiService = const ProdiService();
+
   void formProdi({Prodi? prodi, int? index}) {
     final kodeController = TextEditingController(text: prodi?.kodeProdi ?? '');
     final namaController = TextEditingController(text: prodi?.namaProdi ?? '');
@@ -38,18 +41,21 @@ class _ProdiPageState extends State<ProdiPage> {
           ),
           ElevatedButton(
             onPressed: () {
+              final newProdi = Prodi(
+                kodeProdi: kodeController.text,
+                namaProdi: namaController.text,
+                aliasProdi: kodeController.text,
+              );
               setState(() {
                 if (prodi == null) {
-                  AppData.daftarProdi.add(
-                    Prodi(
-                      kodeProdi: kodeController.text,
-                      namaProdi: namaController.text,
-                      aliasProdi: kodeController.text,
-                    ),
-                  );
+                  final error = _prodiService.tambahProdi(newProdi);
+                  if (error != null) {
+                    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(error)));
+                    return;
+                  }
                 } else {
-                  AppData.daftarProdi[index!].kodeProdi = kodeController.text;
-                  AppData.daftarProdi[index].namaProdi = namaController.text;
+                  final oldKode = AppData.daftarProdi[index!].kodeProdi;
+                  _prodiService.updateProdi(oldKode, newProdi);
                 }
               });
               Navigator.pop(context);
@@ -62,9 +68,13 @@ class _ProdiPageState extends State<ProdiPage> {
   }
 
   void hapusProdi(int index) {
-    setState(() {
-      AppData.daftarProdi.removeAt(index);
-    });
+    final prodi = AppData.daftarProdi[index];
+    final error = _prodiService.hapusProdi(prodi.kodeProdi);
+    if (error != null) {
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(error)));
+      return;
+    }
+    setState(() {});
   }
 
   @override

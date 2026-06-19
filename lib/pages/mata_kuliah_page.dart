@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../data/app_data.dart';
 import '../models/mata_kuliah.dart';
+import '../services/mata_kuliah_service.dart';
 
 class MataKuliahPage extends StatefulWidget {
   const MataKuliahPage({super.key});
@@ -10,6 +11,8 @@ class MataKuliahPage extends StatefulWidget {
 }
 
 class _MataKuliahPageState extends State<MataKuliahPage> {
+  final MataKuliahService _mataKuliahService = const MataKuliahService();
+
   void formMataKuliah({MataKuliah? mataKuliah, int? index}) {
     final kode = TextEditingController(text: mataKuliah?.kodeMataKuliah ?? '');
     final nama = TextEditingController(text: mataKuliah?.namaMataKuliah ?? '');
@@ -82,23 +85,23 @@ class _MataKuliahPageState extends State<MataKuliahPage> {
                 return;
               }
 
+              final newMk = MataKuliah(
+                kodeMataKuliah: kode.text,
+                namaMataKuliah: nama.text,
+                jumlahSks: int.parse(sks.text),
+                kodeProdi: kodeProdi,
+              );
+
               setState(() {
                 if (mataKuliah == null) {
-                  AppData.daftarMataKuliah.add(
-                    MataKuliah(
-                      kodeMataKuliah: kode.text,
-                      namaMataKuliah: nama.text,
-                      jumlahSks: int.parse(sks.text),
-                      kodeProdi: kodeProdi,
-                    ),
-                  );
+                  final error = _mataKuliahService.tambahMataKuliah(newMk);
+                  if (error != null) {
+                    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(error)));
+                    return;
+                  }
                 } else {
-                  AppData.daftarMataKuliah[index!].kodeMataKuliah = kode.text;
-                  AppData.daftarMataKuliah[index].namaMataKuliah = nama.text;
-                  AppData.daftarMataKuliah[index].jumlahSks = int.parse(
-                    sks.text,
-                  );
-                  AppData.daftarMataKuliah[index].kodeProdi = kodeProdi;
+                  final oldKode = AppData.daftarMataKuliah[index!].kodeMataKuliah;
+                  _mataKuliahService.updateMataKuliah(oldKode, newMk);
                 }
               });
 
@@ -112,26 +115,16 @@ class _MataKuliahPageState extends State<MataKuliahPage> {
   }
 
   void hapusMataKuliah(String kodeMataKuliah) {
-    final sudahAdaKelas = AppData.daftarKelas.any(
-      (kelas) => kelas.kodeMataKuliah == kodeMataKuliah,
-    );
-
-    if (sudahAdaKelas) {
+    final error = _mataKuliahService.hapusMataKuliah(kodeMataKuliah);
+    
+    if (error != null) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text(
-            'Mata kuliah tidak bisa dihapus karena sudah dipakai di kelas',
-          ),
-        ),
+        SnackBar(content: Text(error)),
       );
       return;
     }
 
-    setState(() {
-      AppData.daftarMataKuliah.removeWhere(
-        (mk) => mk.kodeMataKuliah == kodeMataKuliah,
-      );
-    });
+    setState(() {});
   }
 
   @override

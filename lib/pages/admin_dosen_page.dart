@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../data/app_data.dart';
 import '../models/dosen.dart';
 import '../theme/app_colors.dart';
+import '../services/dosen_service.dart';
 
 class AdminDosenPage extends StatefulWidget {
   const AdminDosenPage({super.key});
@@ -11,6 +12,8 @@ class AdminDosenPage extends StatefulWidget {
 }
 
 class _AdminDosenPageState extends State<AdminDosenPage> {
+  final DosenService _dosenService = const DosenService();
+
   void formDosen({Dosen? dosen, int? index}) {
     final nidnController = TextEditingController(text: dosen?.nidn ?? '');
     final namaController = TextEditingController(text: dosen?.nama ?? '');
@@ -90,17 +93,25 @@ class _AdminDosenPageState extends State<AdminDosenPage> {
 
               setState(() {
                 if (dosen == null) {
-                  AppData.daftarDosen.add(
-                    Dosen(
-                      nidn: nidnController.text,
-                      nama: namaController.text,
-                      kodeProdi: kodeProdi,
-                    ),
+                  final newDosen = Dosen(
+                    nidn: nidnController.text,
+                    nama: namaController.text,
+                    kodeProdi: kodeProdi,
                   );
+                  final error = _dosenService.tambahDosen(newDosen);
+                  if (error != null) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(content: Text(error)),
+                    );
+                    return; // Prevent pop
+                  }
                 } else {
-                  AppData.daftarDosen[index!].nidn = nidnController.text;
-                  AppData.daftarDosen[index].nama = namaController.text;
-                  AppData.daftarDosen[index].kodeProdi = kodeProdi;
+                  final updatedDosen = Dosen(
+                    nidn: nidnController.text,
+                    nama: namaController.text,
+                    kodeProdi: kodeProdi,
+                  );
+                  _dosenService.updateDosen(dosen.nidn, updatedDosen);
                 }
               });
 
@@ -114,26 +125,17 @@ class _AdminDosenPageState extends State<AdminDosenPage> {
   }
 
   void hapusDosen(int index) {
-    final dosen = AppData.daftarDosen[index];
-
-    final sedangMengajar = AppData.daftarDosenPengajar.any(
-      (dp) => dp.nidnDosen == dosen.nidn,
-    );
-
-    if (sedangMengajar) {
+    final dosen = getDosenMengajar()[index];
+    final error = _dosenService.hapusDosen(dosen.nidn);
+    
+    if (error != null) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text(
-            'Dosen tidak bisa dihapus karena sedang mengajar kelas',
-          ),
-        ),
+        SnackBar(content: Text(error)),
       );
       return;
     }
 
-    setState(() {
-      AppData.daftarDosen.removeAt(index);
-    });
+    setState(() {});
   }
 
   List<Dosen> getDosenMengajar() {

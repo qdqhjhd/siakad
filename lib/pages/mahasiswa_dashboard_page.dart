@@ -9,9 +9,10 @@ import 'khs__page.dart';
 import 'krs_page.dart';
 import 'profile_page.dart';
 import 'presensi_page.dart';
+import 'mahasiswa_materi_page.dart';
 
 // ─── Enum halaman ──────────────────────────────────────────────────────────────
-enum _MhsPage { beranda, krs, khs, profil, jadwal, presensi }
+enum _MhsPage { beranda, krs, khs, profil, jadwal, presensi, materi }
 
 class MahasiswaDashboardPage extends StatefulWidget {
   const MahasiswaDashboardPage({super.key});
@@ -33,6 +34,7 @@ class _MahasiswaDashboardPageState extends State<MahasiswaDashboardPage> {
       case _MhsPage.profil: return ['Beranda', 'Profil'];
       case _MhsPage.jadwal: return ['Beranda', 'Jadwal Kuliah'];
       case _MhsPage.presensi: return ['Beranda', 'Akademik', 'Presensi Kuliah'];
+      case _MhsPage.materi: return ['Beranda', 'Akademik', 'Silabus & Materi'];
       default: return ['Beranda', 'Dashboard'];
     }
   }
@@ -43,6 +45,7 @@ class _MahasiswaDashboardPageState extends State<MahasiswaDashboardPage> {
       case _MhsPage.khs: return const KhsPage();
       case _MhsPage.profil: return const ProfilePage();
       case _MhsPage.presensi: return const PresensiPage(role: 'mahasiswa');
+      case _MhsPage.materi: return const MahasiswaMateriPage();
       default:
         return _BerandaContent(
           selectedDate: _selectedDate,
@@ -108,12 +111,13 @@ class _MahasiswaNavBarState extends State<_MahasiswaNavBar> {
               _NavDropdownItem(
                 label: 'Akademik',
                 isOpen: _openDropdown == 'akademik',
-                isActive: widget.active == _MhsPage.krs || widget.active == _MhsPage.presensi,
+                isActive: widget.active == _MhsPage.krs || widget.active == _MhsPage.presensi || widget.active == _MhsPage.materi,
                 onTap: () => _toggle('akademik'),
                 items: [
                   _DropdownOption(icon: Icons.edit_note, title: 'Pengisian KRS', subtitle: 'Tentukan rencana kuliah', onTap: () { _close(); widget.onSelect(_MhsPage.krs); }),
                   _DropdownOption(icon: Icons.fingerprint_rounded, title: 'Presensi Kuliah', subtitle: 'Isi kehadiran kelas hari ini', onTap: () { _close(); widget.onSelect(_MhsPage.presensi); }),
-                  _DropdownOption(icon: Icons.library_books, title: 'Nilai Mahasiswa', subtitle: 'Kualitas perkuliahan Anda', onTap: () { _close(); widget.onSelect(_MhsPage.khs); }),
+                  _DropdownOption(icon: Icons.library_books, title: 'Silabus & Materi', subtitle: 'Lihat materi perkuliahan', onTap: () { _close(); widget.onSelect(_MhsPage.materi); }),
+                  _DropdownOption(icon: Icons.book, title: 'Nilai Mahasiswa', subtitle: 'Kualitas perkuliahan Anda', onTap: () { _close(); widget.onSelect(_MhsPage.khs); }),
                   _DropdownOption(icon: Icons.person, title: 'Profil', subtitle: 'Data diri mahasiswa', onTap: () { _close(); widget.onSelect(_MhsPage.profil); }),
                 ],
               ),
@@ -153,7 +157,8 @@ class _MahasiswaNavBarState extends State<_MahasiswaNavBar> {
       items = [
         _DropdownOption(icon: Icons.edit_note, title: 'Pengisian KRS', subtitle: 'Tentukan rencana kuliah', onTap: () { _close(); widget.onSelect(_MhsPage.krs); }),
         _DropdownOption(icon: Icons.fingerprint_rounded, title: 'Presensi Kuliah', subtitle: 'Isi kehadiran kelas hari ini', onTap: () { _close(); widget.onSelect(_MhsPage.presensi); }),
-        _DropdownOption(icon: Icons.library_books, title: 'Nilai Mahasiswa', subtitle: 'Kualitas perkuliahan Anda', onTap: () { _close(); widget.onSelect(_MhsPage.khs); }),
+        _DropdownOption(icon: Icons.library_books, title: 'Silabus & Materi', subtitle: 'Lihat materi perkuliahan', onTap: () { _close(); widget.onSelect(_MhsPage.materi); }),
+        _DropdownOption(icon: Icons.book, title: 'Nilai Mahasiswa', subtitle: 'Kualitas perkuliahan Anda', onTap: () { _close(); widget.onSelect(_MhsPage.khs); }),
         _DropdownOption(icon: Icons.person, title: 'Profil', subtitle: 'Data diri mahasiswa', onTap: () { _close(); widget.onSelect(_MhsPage.profil); }),
       ];
     } else if (_openDropdown == 'ta') {
@@ -620,36 +625,53 @@ class _MiniStatCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return CyberPanel(
-      isGlass: false,
-      padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 16),
-      child: Column(children: [
-        SizedBox(
-          width: 64,
-          height: 64,
-          child: Stack(
-            alignment: Alignment.center,
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(12),
+        border: Border(left: BorderSide(color: color, width: 3)),
+        boxShadow: [
+          BoxShadow(color: Colors.black.withValues(alpha: 0.04), blurRadius: 8, offset: const Offset(0, 2)),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
             children: [
-              SizedBox(
-                width: 64,
-                height: 64,
-                child: CircularProgressIndicator(
-                  value: progress.clamp(0.0, 1.0),
-                  strokeWidth: 5,
-                  strokeCap: StrokeCap.round,
-                  color: color,
-                  backgroundColor: color.withValues(alpha: 0.12),
+              Container(
+                width: 30,
+                height: 30,
+                decoration: BoxDecoration(
+                  color: color.withValues(alpha: 0.1),
+                  borderRadius: BorderRadius.circular(7),
+                ),
+                child: Icon(icon, color: color, size: 16),
+              ),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Text(
+                  value,
+                  style: TextStyle(color: color, fontSize: 18, fontWeight: FontWeight.w900, height: 1),
                 ),
               ),
-              Icon(icon, color: color, size: 22),
             ],
           ),
-        ),
-        const SizedBox(height: 10),
-        Text(value, style: TextStyle(color: color, fontSize: 22, fontWeight: FontWeight.w900)),
-        const SizedBox(height: 2),
-        Text(label, style: const TextStyle(color: AppColors.textSecondary, fontSize: 11)),
-      ]),
+          const SizedBox(height: 6),
+          Text(label, style: const TextStyle(color: AppColors.textSecondary, fontSize: 11)),
+          const SizedBox(height: 5),
+          ClipRRect(
+            borderRadius: BorderRadius.circular(3),
+            child: LinearProgressIndicator(
+              value: progress.clamp(0.0, 1.0),
+              minHeight: 3,
+              color: color,
+              backgroundColor: color.withValues(alpha: 0.12),
+            ),
+          ),
+        ],
+      ),
     );
   }
 }

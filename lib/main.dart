@@ -1,10 +1,23 @@
 import 'package:flutter/material.dart';
 import 'pages/login_page.dart';
 import 'theme/app_colors.dart';
+import 'database/db_connection.dart'; // ← tambah import ini
 
-void main() {
+void main() async { // ← tambah async
+  WidgetsFlutterBinding.ensureInitialized(); // ← tambah ini
+
+  // Test koneksi ← tambah blok ini
+  try {
+    final conn = await DBConnection.connect();
+    print('✅ Koneksi database berhasil!');
+    await conn.close();
+  } catch (e) {
+    print('❌ Koneksi gagal: $e');
+  }
+
   runApp(const MyApp());
 }
+
 
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
